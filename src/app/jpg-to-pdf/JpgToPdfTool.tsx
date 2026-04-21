@@ -306,7 +306,7 @@ export default function JpgToPdfTool() {
             {images.map((img, idx) => (
               <li
                 key={img.id}
-                className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-gray-800 border border-border dark:border-border-dark"
+                className="flex items-center gap-3 p-3 rounded-lg bg-surface dark:bg-surface-dark border border-border dark:border-border-dark"
               >
                 <span className="flex-shrink-0 w-8 h-8 rounded bg-primary/10 text-primary flex items-center justify-center text-sm font-bold">
                   {idx + 1}
@@ -382,7 +382,7 @@ export default function JpgToPdfTool() {
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border text-left ${
                       pageSize === key
                         ? "bg-primary text-white border-primary"
-                        : "bg-white dark:bg-gray-800 text-text dark:text-text-dark border-border dark:border-border-dark hover:border-primary"
+                        : "bg-surface dark:bg-surface-dark text-text dark:text-text-dark border-border dark:border-border-dark hover:border-primary"
                     }`}
                   >
                     {pageSizeOptions[key].label}
@@ -405,7 +405,7 @@ export default function JpgToPdfTool() {
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border text-left ${
                       margin === key
                         ? "bg-primary text-white border-primary"
-                        : "bg-white dark:bg-gray-800 text-text dark:text-text-dark border-border dark:border-border-dark hover:border-primary"
+                        : "bg-surface dark:bg-surface-dark text-text dark:text-text-dark border-border dark:border-border-dark hover:border-primary"
                     }`}
                   >
                     {marginOptions[key].label}

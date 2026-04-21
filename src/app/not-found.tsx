@@ -26,42 +26,42 @@ export default function NotFound() {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <Link
               href="/merge-pdf"
-              className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow text-center"
+              className="bg-surface dark:bg-surface-dark rounded-xl border border-border dark:border-border-dark p-4 hover:shadow-md transition-shadow text-center"
             >
               <span className="text-2xl mb-2 block">📄</span>
               <span className="font-medium text-text dark:text-text-dark">Merge PDF</span>
             </Link>
             <Link
               href="/split-pdf"
-              className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow text-center"
+              className="bg-surface dark:bg-surface-dark rounded-xl border border-border dark:border-border-dark p-4 hover:shadow-md transition-shadow text-center"
             >
               <span className="text-2xl mb-2 block">✂️</span>
               <span className="font-medium text-text dark:text-text-dark">Split PDF</span>
             </Link>
             <Link
               href="/compress-pdf"
-              className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow text-center"
+              className="bg-surface dark:bg-surface-dark rounded-xl border border-border dark:border-border-dark p-4 hover:shadow-md transition-shadow text-center"
             >
               <span className="text-2xl mb-2 block">🗜️</span>
               <span className="font-medium text-text dark:text-text-dark">Compress PDF</span>
             </Link>
             <Link
               href="/pdf-to-jpg"
-              className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow text-center"
+              className="bg-surface dark:bg-surface-dark rounded-xl border border-border dark:border-border-dark p-4 hover:shadow-md transition-shadow text-center"
             >
               <span className="text-2xl mb-2 block">🖼️</span>
               <span className="font-medium text-text dark:text-text-dark">PDF to JPG</span>
             </Link>
             <Link
               href="/jpg-to-pdf"
-              className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow text-center"
+              className="bg-surface dark:bg-surface-dark rounded-xl border border-border dark:border-border-dark p-4 hover:shadow-md transition-shadow text-center"
             >
               <span className="text-2xl mb-2 block">📷</span>
               <span className="font-medium text-text dark:text-text-dark">JPG to PDF</span>
             </Link>
             <Link
               href="/pdf-to-word"
-              className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow text-center"
+              className="bg-surface dark:bg-surface-dark rounded-xl border border-border dark:border-border-dark p-4 hover:shadow-md transition-shadow text-center"
             >
               <span className="text-2xl mb-2 block">📝</span>
               <span className="font-medium text-text dark:text-text-dark">PDF to Word</span>

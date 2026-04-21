@@ -208,7 +208,7 @@ export default function PdfToWordTool() {
 
         {/* File Info & Convert Button */}
         {file && !result && processing.status !== "processing" && (
-          <section className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <section className="mb-8 bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-border dark:border-border-dark p-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -233,7 +233,7 @@ export default function PdfToWordTool() {
 
         {/* Processing */}
         {processing.status === "processing" && (
-          <section className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <section className="mb-8 bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-border dark:border-border-dark p-6">
             <p className="text-sm text-text-light dark:text-text-dark-muted mb-3">{processing.message}</p>
             <ProgressBar progress={processing.progress} />
           </section>
@@ -251,7 +251,7 @@ export default function PdfToWordTool() {
 
         {/* Result */}
         {result && (
-          <section className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <section className="mb-8 bg-surface dark:bg-surface-dark rounded-xl shadow-sm border border-border dark:border-border-dark p-6">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-green-500 text-xl">✅</span>
               <h2 className="text-lg font-semibold text-text dark:text-text-dark">Conversion Complete</h2>

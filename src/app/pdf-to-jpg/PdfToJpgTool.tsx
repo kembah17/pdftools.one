@@ -252,7 +252,7 @@ export default function PdfToJpgTool() {
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
                     quality === key
                       ? "bg-primary text-white border-primary"
-                      : "bg-white dark:bg-gray-800 text-text dark:text-text-dark border-border dark:border-border-dark hover:border-primary"
+                      : "bg-surface dark:bg-surface-dark text-text dark:text-text-dark border-border dark:border-border-dark hover:border-primary"
                   }`}
                 >
                   {qualityPresets[key].label}
