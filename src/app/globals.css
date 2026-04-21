@@ -1,26 +1,144 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: #1e40af;
+  --color-primary-light: #3b82f6;
+  --color-primary-dark: #1e3a8a;
+  --color-secondary: #0ea5e9;
+  --color-accent: #10b981;
+  --color-accent-dark: #059669;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f8fafc;
+  --color-surface-dark: #0f172a;
+  --color-surface-dark-alt: #1e293b;
+  --color-text: #334155;
+  --color-text-light: #64748b;
+  --color-text-dark: #e2e8f0;
+  --color-text-dark-muted: #94a3b8;
+  --color-border: #e2e8f0;
+  --color-border-dark: #334155;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base styles */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-surface text-text antialiased;
+}
+
+.dark body {
+  @apply bg-surface-dark text-text-dark;
+}
+
+/* Dark mode overrides */
+.dark {
+  color-scheme: dark;
+}
+
+/* File drop zone */
+.drop-zone {
+  @apply border-2 border-dashed border-border rounded-xl p-8 text-center transition-all duration-200 cursor-pointer;
+}
+
+.drop-zone:hover,
+.drop-zone.drag-over {
+  @apply border-primary bg-primary/5;
+}
+
+.dark .drop-zone {
+  @apply border-border-dark;
+}
+
+.dark .drop-zone:hover,
+.dark .drop-zone.drag-over {
+  @apply border-secondary bg-secondary/10;
+}
+
+/* Ad slot placeholder */
+.ad-slot {
+  @apply bg-surface-alt border border-border rounded-lg flex items-center justify-center text-text-light text-sm;
+  min-height: 90px;
+}
+
+.dark .ad-slot {
+  @apply bg-surface-dark-alt border-border-dark text-text-dark-muted;
+}
+
+/* Progress bar */
+.progress-bar {
+  @apply h-2 bg-surface-alt rounded-full overflow-hidden;
+}
+
+.progress-bar-fill {
+  @apply h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-300;
+}
+
+.dark .progress-bar {
+  @apply bg-surface-dark-alt;
+}
+
+/* Privacy badge */
+.privacy-badge {
+  @apply inline-flex items-center gap-2 px-4 py-2 bg-accent/10 text-accent-dark rounded-full text-sm font-medium;
+}
+
+.dark .privacy-badge {
+  @apply bg-accent/20 text-accent;
+}
+
+/* Tool card */
+.tool-card {
+  @apply bg-surface border border-border rounded-2xl p-6 transition-all duration-200 hover:shadow-lg hover:border-primary/30 hover:-translate-y-1;
+}
+
+.dark .tool-card {
+  @apply bg-surface-dark-alt border-border-dark hover:border-secondary/30;
+}
+
+/* FAQ accordion */
+.faq-item {
+  @apply border-b border-border;
+}
+
+.dark .faq-item {
+  @apply border-border-dark;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-surface border border-border text-text font-semibold rounded-xl hover:bg-surface-alt transition-colors duration-200;
+}
+
+.dark .btn-secondary {
+  @apply bg-surface-dark-alt border-border-dark text-text-dark hover:bg-surface-dark;
+}
+
+.btn-accent {
+  @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent-dark transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Thumbnail grid */
+.thumbnail-grid {
+  @apply grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4;
+}
+
+/* Page container */
+.page-container {
+  @apply max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+}
+
+/* Section spacing */
+.section-spacing {
+  @apply mt-12 pt-8 border-t border-border;
+}
+
+.dark .section-spacing {
+  @apply border-border-dark;
 }
