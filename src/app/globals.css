@@ -11,13 +11,13 @@
   --color-surface-alt: #f8fafc;
   --color-surface-dark: #0f172a;
   --color-surface-dark-alt: #1e293b;
-  --color-text: #111827;
-  --color-text-light: #1e293b;
+  --color-text: #000000;
+  --color-text-light: #374151;
   --color-text-dark: #e2e8f0;
   --color-text-dark-muted: #94a3b8;
-  --color-border: #cbd5e1;
+  --color-border: #6b7280;
   --color-border-dark: #334155;
-  --color-page-bg: #ffffff;
+  --color-page-bg: #e8ecf1;
   --color-page-bg-dark: #0f172a;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
@@ -43,7 +43,7 @@ body {
 /* File drop zone */
 .drop-zone {
   @apply border-2 border-dashed border-border rounded-xl p-8 text-center transition-all duration-200 cursor-pointer bg-surface;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
 }
 
 .drop-zone:hover,
@@ -66,7 +66,7 @@ body {
 .ad-slot {
   @apply bg-surface border border-border rounded-lg flex items-center justify-center text-text-light text-sm;
   min-height: 90px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.08);
 }
 
 .dark .ad-slot {
@@ -102,8 +102,8 @@ body {
 
 /* Tool card */
 .tool-card {
-  @apply bg-surface border border-border rounded-2xl p-6 transition-all duration-200 hover:-translate-y-1;
-  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08), 0 1px 3px -1px rgba(0, 0, 0, 0.1);
+  @apply bg-surface border-2 border-border rounded-2xl p-6 transition-all duration-200 hover:-translate-y-1;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.12), 0 2px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .tool-card:hover {
@@ -173,8 +173,8 @@ body {
 /* Feature cards on homepage (Why Choose section) */
 .feature-card {
   @apply bg-surface rounded-2xl p-6 text-center;
-  border: 1px solid var(--color-border);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  border: 2px solid var(--color-border);
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
 .dark .feature-card {
@@ -186,8 +186,8 @@ body {
 /* Content sections on tool pages */
 .content-section {
   @apply bg-surface rounded-2xl p-6 sm:p-8;
-  border: 1px solid var(--color-border);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  border: 2px solid var(--color-border);
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
 }
 
 .dark .content-section {
