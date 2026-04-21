@@ -18,7 +18,7 @@ export function AdSlot({ slot, className = "" }: AdSlotProps) {
       aria-hidden="true"
     >
       {/* Ad placeholder - replace with actual ad code */}
-      <span className="text-xs opacity-50">Advertisement</span>
+      <span className="text-xs text-text-light dark:text-text-dark-muted">Advertisement</span>
     </div>
   );
 }

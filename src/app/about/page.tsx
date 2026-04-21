@@ -17,7 +17,7 @@ export default function AboutPage() {
         <PrivacyBadge />
       </div>
 
-      <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
+      <h1 className="text-4xl font-bold text-text dark:text-text-dark mb-8 text-center">
         About pdftools.one
       </h1>
 

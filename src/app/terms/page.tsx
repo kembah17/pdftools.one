@@ -12,10 +12,10 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <div className="page-container">
-      <h1 className="text-4xl font-bold text-gray-900 mb-4 text-center">
+      <h1 className="text-4xl font-bold text-text dark:text-text-dark mb-4 text-center">
         Terms of Service
       </h1>
-      <p className="text-center text-gray-500 mb-10">
+      <p className="text-center text-text-light dark:text-text-dark-muted mb-10">
         Last updated: April 21, 2026
       </p>
 

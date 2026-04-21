@@ -185,10 +185,10 @@ export default function PdfToWordTool() {
           <div className="flex justify-center mb-4">
             <PrivacyBadge />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl font-bold text-text dark:text-text-dark mb-4">
             PDF to Word Converter
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-text-light dark:text-text-dark-muted max-w-2xl mx-auto">
             Convert PDF files to editable Word documents (.docx) instantly in your
             browser. No upload required — your files stay private on your device.
           </p>
@@ -215,8 +215,8 @@ export default function PdfToWordTool() {
                   <span className="text-blue-600 text-lg">📄</span>
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">{file.name}</p>
-                  <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
+                  <p className="font-medium text-text dark:text-text-dark">{file.name}</p>
+                  <p className="text-sm text-text-light dark:text-text-dark-muted">{formatFileSize(file.size)}</p>
                 </div>
               </div>
               <div className="flex gap-3">
@@ -234,7 +234,7 @@ export default function PdfToWordTool() {
         {/* Processing */}
         {processing.status === "processing" && (
           <section className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <p className="text-sm text-gray-600 mb-3">{processing.message}</p>
+            <p className="text-sm text-text-light dark:text-text-dark-muted mb-3">{processing.message}</p>
             <ProgressBar progress={processing.progress} />
           </section>
         )}
@@ -254,29 +254,29 @@ export default function PdfToWordTool() {
           <section className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-green-500 text-xl">✅</span>
-              <h2 className="text-lg font-semibold text-gray-900">Conversion Complete</h2>
+              <h2 className="text-lg font-semibold text-text dark:text-text-dark">Conversion Complete</h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
               <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-sm text-gray-500">Pages</p>
-                <p className="text-lg font-semibold text-gray-900">{result.pageCount}</p>
+                <p className="text-sm text-text-light dark:text-text-dark-muted">Pages</p>
+                <p className="text-lg font-semibold text-text dark:text-text-dark">{result.pageCount}</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-sm text-gray-500">Original Size</p>
-                <p className="text-lg font-semibold text-gray-900">{formatFileSize(file!.size)}</p>
+                <p className="text-sm text-text-light dark:text-text-dark-muted">Original Size</p>
+                <p className="text-lg font-semibold text-text dark:text-text-dark">{formatFileSize(file!.size)}</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-sm text-gray-500">Word File Size</p>
-                <p className="text-lg font-semibold text-gray-900">{formatFileSize(result.blob.size)}</p>
+                <p className="text-sm text-text-light dark:text-text-dark-muted">Word File Size</p>
+                <p className="text-lg font-semibold text-text dark:text-text-dark">{formatFileSize(result.blob.size)}</p>
               </div>
             </div>
 
             {/* Text Preview */}
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Extracted Text Preview</h3>
+              <h3 className="text-sm font-medium text-text dark:text-text-dark mb-2">Extracted Text Preview</h3>
               <div className="bg-gray-50 rounded-lg p-4 max-h-48 overflow-y-auto">
-                <p className="text-sm text-gray-600 whitespace-pre-wrap font-mono">
+                <p className="text-sm text-text-light dark:text-text-dark-muted whitespace-pre-wrap font-mono">
                   {result.textPreview}
                 </p>
               </div>
@@ -304,7 +304,7 @@ export default function PdfToWordTool() {
 
         {/* How-To Guide */}
         <section className="section-spacing">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <h2 className="text-2xl font-bold text-text dark:text-text-dark mb-6">
             How to Convert PDF to Word Online
           </h2>
           <div className="prose prose-gray max-w-none">

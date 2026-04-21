@@ -17,7 +17,7 @@ export default function HomePage() {
           Free PDF Tools,{" "}
           <span className="text-primary dark:text-secondary">100% Private</span>
         </h1>
-        <p className="mt-6 text-lg md:text-xl text-text-light dark:text-text-dark-muted max-w-2xl mx-auto">
+        <p className="mt-6 text-lg md:text-xl text-text/80 dark:text-text-dark/80 max-w-2xl mx-auto">
           Merge, split, compress, convert, and rotate PDFs — all processing happens
           in your browser. No uploads, no servers, no sign-up required.
         </p>
