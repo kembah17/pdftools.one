@@ -1,14 +1,17 @@
+"use client";
+
 interface ProgressBarProps {
   progress: number;
-  className?: string;
 }
 
-export function ProgressBar({ progress, className = "" }: ProgressBarProps) {
+export function ProgressBar({ progress }: ProgressBarProps) {
+  const clampedProgress = Math.min(100, Math.max(0, progress));
+
   return (
-    <div className={`progress-bar ${className}`}>
+    <div className="w-full bg-border-light rounded-full h-3 overflow-hidden">
       <div
-        className="progress-bar-fill"
-        style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+        className="h-full bg-primary rounded-full transition-all duration-300 ease-out"
+        style={{ width: `${clampedProgress}%` }}
       />
     </div>
   );

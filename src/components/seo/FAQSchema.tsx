@@ -1,19 +1,19 @@
-import type { FAQItem } from "@/types";
-
 interface FAQSchemaProps {
-  items: FAQItem[];
+  faqs?: { question: string; answer: string }[];
+  items?: { question: string; answer: string }[];
 }
 
-export function FAQSchema({ items }: FAQSchemaProps) {
+export function FAQSchema({ faqs, items }: FAQSchemaProps) {
+  const faqList = items || faqs || [];
   const schema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: items.map((item) => ({
-      "@type": "Question",
-      name: item.question,
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqList.map(faq => ({
+      '@type': 'Question',
+      name: faq.question,
       acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
+        '@type': 'Answer',
+        text: faq.answer,
       },
     })),
   };
@@ -25,3 +25,5 @@ export function FAQSchema({ items }: FAQSchemaProps) {
     />
   );
 }
+
+export default FAQSchema;

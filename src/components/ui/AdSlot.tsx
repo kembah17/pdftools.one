@@ -1,24 +1,14 @@
 interface AdSlotProps {
-  slot: "leaderboard" | "below-results" | "in-content" | "footer";
+  slot: string;
   className?: string;
 }
 
-const slotSizes: Record<string, string> = {
-  leaderboard: "max-w-[728px] h-[90px]",
-  "below-results": "max-w-[728px] h-[90px]",
-  "in-content": "max-w-[336px] h-[280px] mx-auto",
-  footer: "max-w-[728px] h-[90px]",
-};
-
-export function AdSlot({ slot, className = "" }: AdSlotProps) {
+export function AdSlot({ slot, className = '' }: AdSlotProps) {
   return (
-    <div
-      className={`ad-slot w-full mx-auto my-6 ${slotSizes[slot]} ${className}`}
-      data-ad-slot={slot}
-      aria-hidden="true"
-    >
-      {/* Ad placeholder - replace with actual ad code */}
-      <span className="text-xs text-text-light dark:text-text-dark-muted">Advertisement</span>
+    <div className={`ad-slot my-6 ${className}`} data-ad-slot={slot}>
+      <div className="bg-[var(--ad-bg)] border border-dashed border-[var(--ad-border)] rounded-lg p-4 text-center text-sm text-text-light">
+        Advertisement
+      </div>
     </div>
   );
 }

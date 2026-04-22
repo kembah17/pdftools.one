@@ -1,197 +1,60 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   --color-primary: #1e40af;
-  --color-primary-light: #3b82f6;
+  --color-primary-hover: #1e3a8a;
+  --color-primary-light: #dbeafe;
   --color-primary-dark: #1e3a8a;
   --color-secondary: #0ea5e9;
   --color-accent: #10b981;
-  --color-accent-dark: #059669;
-  --color-surface: #ffffff;
-  --color-surface-alt: #f8fafc;
-  --color-surface-dark: #0f172a;
-  --color-surface-dark-alt: #1e293b;
-  --color-text: #000000;
-  --color-text-light: #111827;
-  --color-text-dark: #e2e8f0;
-  --color-text-dark-muted: #94a3b8;
-  --color-border: #6b7280;
-  --color-border-dark: #334155;
-  --color-page-bg: #e8ecf1;
-  --color-page-bg-dark: #0f172a;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-page-bg: #F3F4F6;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F9FAFB;
+  --color-text: #111827;
+  --color-text-light: #6B7280;
+  --color-text-dark: #030712;
+  --color-border: #D1D5DB;
+  --color-border-light: #E5E7EB;
+  --color-success: #059669;
+  --color-error: #DC2626;
+  --color-warning: #D97706;
+  --color-muted: #9CA3AF;
 }
 
-/* Base styles */
+:root {
+  --ad-bg: rgba(243, 244, 246, 0.3);
+  --ad-border: rgba(107, 114, 128, 0.2);
+}
+
+.dark {
+  --color-page-bg: #0F172A;
+  --color-surface: #1E293B;
+  --color-surface-alt: #334155;
+  --color-text: #F1F5F9;
+  --color-text-light: #94A3B8;
+  --color-text-dark: #F8FAFC;
+  --color-border: #475569;
+  --color-border-light: #334155;
+  --color-primary-light: #1e3a5f;
+  --ad-bg: rgba(30, 41, 59, 0.3);
+  --ad-border: rgba(148, 163, 184, 0.2);
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  @apply bg-page-bg text-text antialiased;
+  background-color: var(--color-page-bg);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
-.dark body {
-  @apply bg-page-bg-dark text-text-dark;
-}
-
-/* Dark mode overrides */
-.dark {
-  color-scheme: dark;
-}
-
-/* File drop zone */
-.drop-zone {
-  @apply border-2 border-dashed border-border rounded-xl p-8 text-center transition-all duration-200 cursor-pointer bg-surface;
-  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
-}
-
-.drop-zone:hover,
-.drop-zone.drag-over {
-  @apply border-primary bg-primary/5;
-  box-shadow: 0 4px 12px 0 rgba(30, 64, 175, 0.1);
-}
-
-.dark .drop-zone {
-  @apply border-border-dark bg-surface-dark-alt;
-  box-shadow: none;
-}
-
-.dark .drop-zone:hover,
-.dark .drop-zone.drag-over {
-  @apply border-secondary bg-secondary/10;
-}
-
-/* Ad slot placeholder */
 .ad-slot {
-  @apply bg-surface border border-border rounded-lg flex items-center justify-center text-text-light text-sm;
-  min-height: 90px;
-  box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.08);
+  margin: 1rem 0;
 }
 
-.dark .ad-slot {
-  @apply bg-surface-dark-alt border-border-dark text-text-dark-muted;
-  box-shadow: none;
-}
-
-/* Progress bar */
-.progress-bar {
-  @apply h-2 bg-surface-alt rounded-full overflow-hidden;
-  border: 1px solid var(--color-border);
-}
-
-.progress-bar-fill {
-  @apply h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-300;
-}
-
-.dark .progress-bar {
-  @apply bg-surface-dark-alt;
-  border-color: var(--color-border-dark);
-}
-
-/* Privacy badge */
-.privacy-badge {
-  @apply inline-flex items-center gap-2 px-4 py-2 bg-accent/10 text-accent-dark rounded-full text-sm font-medium;
-  border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-.dark .privacy-badge {
-  @apply bg-accent/20 text-accent;
-  border-color: rgba(16, 185, 129, 0.3);
-}
-
-/* Tool card */
-.tool-card {
-  @apply bg-surface border-2 border-border rounded-2xl p-6 transition-all duration-200 hover:-translate-y-1;
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.12), 0 2px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.tool-card:hover {
-  @apply border-primary/40;
-  box-shadow: 0 10px 25px -5px rgba(30, 64, 175, 0.1), 0 8px 10px -6px rgba(30, 64, 175, 0.08);
-}
-
-.dark .tool-card {
-  @apply bg-surface-dark-alt border-border-dark;
-  box-shadow: none;
-}
-
-.dark .tool-card:hover {
-  @apply border-secondary/30;
-  box-shadow: 0 10px 25px -5px rgba(14, 165, 233, 0.1);
-}
-
-/* FAQ accordion */
-.faq-item {
-  @apply border-b border-border;
-}
-
-.dark .faq-item {
-  @apply border-border-dark;
-}
-
-/* Button styles */
-.btn-primary {
-  @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
-  box-shadow: 0 1px 3px 0 rgba(30, 64, 175, 0.3);
-}
-
-.btn-secondary {
-  @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-surface border border-border text-text font-semibold rounded-xl hover:bg-surface-alt transition-colors duration-200;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-}
-
-.dark .btn-secondary {
-  @apply bg-surface-dark-alt border-border-dark text-text-dark hover:bg-surface-dark;
-  box-shadow: none;
-}
-
-.btn-accent {
-  @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-accent text-white font-semibold rounded-xl hover:bg-accent-dark transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
-  box-shadow: 0 1px 3px 0 rgba(16, 185, 129, 0.3);
-}
-
-/* Thumbnail grid */
-.thumbnail-grid {
-  @apply grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4;
-}
-
-/* Page container */
-.page-container {
-  @apply max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
-}
-
-/* Section spacing */
-.section-spacing {
-  @apply mt-12 pt-8 border-t border-border;
-}
-
-.dark .section-spacing {
-  @apply border-border-dark;
-}
-
-/* Feature cards on homepage (Why Choose section) */
-.feature-card {
-  @apply bg-surface rounded-2xl p-6 text-center;
-  border: 2px solid var(--color-border);
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.dark .feature-card {
-  @apply bg-surface-dark-alt;
-  border-color: var(--color-border-dark);
-  box-shadow: none;
-}
-
-/* Content sections on tool pages */
-.content-section {
-  @apply bg-surface rounded-2xl p-6 sm:p-8;
-  border: 2px solid var(--color-border);
-  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.1);
-}
-
-.dark .content-section {
-  @apply bg-surface-dark-alt;
-  border-color: var(--color-border-dark);
-  box-shadow: none;
+::selection {
+  background-color: var(--color-primary);
+  color: white;
 }

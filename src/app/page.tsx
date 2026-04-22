@@ -1,134 +1,169 @@
-import Link from "next/link";
-import { tools } from "@/lib/tools-data";
-import { AdSlot } from "@/components/ui/AdSlot";
+import Link from 'next/link';
+import { AdSlot } from '@/components/ui/AdSlot';
+import WebSiteSchema from '@/components/seo/WebSiteSchema';
+import { PrivacyBadge } from '@/components/ui/PrivacyBadge';
+
+const tools = [
+  {
+    name: 'Merge PDF',
+    href: '/merge-pdf',
+    description: 'Combine multiple PDF files into a single document. Drag and drop to reorder pages.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 14v6m-3-3h6M6 10h2a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2zm10 0h2a2 2 0 002-2V6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2zM6 20h2a2 2 0 002-2v-2a2 2 0 00-2-2H6a2 2 0 00-2 2v2a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    name: 'Split PDF',
+    href: '/split-pdf',
+    description: 'Extract specific pages or split a PDF into multiple separate files.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+      </svg>
+    ),
+  },
+  {
+    name: 'Compress PDF',
+    href: '/compress-pdf',
+    description: 'Reduce PDF file size while maintaining quality. Perfect for email attachments.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+      </svg>
+    ),
+  },
+  {
+    name: 'PDF to JPG',
+    href: '/pdf-to-jpg',
+    description: 'Convert PDF pages to high-quality JPG images. Download individually or as ZIP.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    name: 'JPG to PDF',
+    href: '/jpg-to-pdf',
+    description: 'Convert JPG images into a PDF document. Supports multiple images with reordering.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+      </svg>
+    ),
+  },
+  {
+    name: 'PDF to Word',
+    href: '/pdf-to-word',
+    description: 'Convert PDF documents to editable Word (.docx) format with text extraction.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    ),
+  },
+  {
+    name: 'Rotate PDF',
+    href: '/rotate-pdf',
+    description: 'Rotate PDF pages to any orientation. Rotate individual pages or all at once.',
+    icon: (
+      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+    ),
+  },
+];
+
+const steps = [
+  { step: '1', title: 'Upload Your PDF', description: 'Drag and drop your PDF file or click to browse. Files stay in your browser.' },
+  { step: '2', title: 'Choose Your Action', description: 'Select from merge, split, compress, convert, or rotate tools.' },
+  { step: '3', title: 'Download Result', description: 'Get your processed file instantly. No email required, no waiting.' },
+];
 
 export default function HomePage() {
   return (
-    <div className="page-container">
+    <>
+      <WebSiteSchema />
+
       {/* Hero Section */}
-      <section className="text-center py-12 md:py-20">
-        <div className="privacy-badge mx-auto mb-6">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-          <span>Your files never leave your device</span>
+      <section className="bg-surface border-b border-border">
+        <div className="max-w-6xl mx-auto px-4 py-16 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-text mb-4">
+            Free Online <span className="text-primary">PDF Tools</span>
+          </h1>
+          <p className="text-lg text-text-light max-w-2xl mx-auto mb-8">
+            Merge, split, compress, convert, and rotate PDFs entirely in your browser.
+            No uploads, no sign-ups, no limits — your files never leave your device.
+          </p>
+          <PrivacyBadge />
         </div>
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-text dark:text-text-dark leading-tight">
-          Free PDF Tools,{" "}
-          <span className="text-primary dark:text-secondary">100% Private</span>
-        </h1>
-        <p className="mt-6 text-lg md:text-xl text-text/80 dark:text-text-dark/80 max-w-2xl mx-auto">
-          Merge, split, compress, convert, and rotate PDFs — all processing happens
-          in your browser. No uploads, no servers, no sign-up required.
-        </p>
       </section>
 
-      {/* Ad: Leaderboard */}
-      <AdSlot slot="leaderboard" />
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <AdSlot slot="leaderboard" />
 
-      {/* Tools Grid */}
-      <section className="py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tools.map((tool) => (
-            <Link
-              key={tool.slug}
-              href={`/${tool.slug}`}
-              className="tool-card group"
-            >
-              <div className={`w-12 h-12 ${tool.color} rounded-xl flex items-center justify-center mb-4`}>
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d={tool.icon} />
-                </svg>
+        {/* Tools Grid */}
+        <section className="mb-16">
+          <h2 className="text-2xl font-bold text-text mb-8 text-center">All PDF Tools</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {tools.map(tool => (
+              <Link
+                key={tool.href}
+                href={tool.href}
+                className="group block p-6 bg-surface border border-border rounded-xl shadow-sm hover:shadow-md hover:border-primary transition-all"
+              >
+                <div className="text-primary mb-3 group-hover:scale-110 transition-transform inline-block">
+                  {tool.icon}
+                </div>
+                <h3 className="font-semibold text-lg text-text mb-2 group-hover:text-primary transition-colors">
+                  {tool.name}
+                </h3>
+                <p className="text-sm text-text-light leading-relaxed">{tool.description}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <AdSlot slot="in-content" />
+
+        {/* How It Works */}
+        <section className="mb-16">
+          <h2 className="text-2xl font-bold text-text mb-8 text-center">How It Works</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {steps.map(item => (
+              <div key={item.step} className="text-center">
+                <div className="w-12 h-12 bg-primary text-surface rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-4">
+                  {item.step}
+                </div>
+                <h3 className="font-semibold text-text mb-2">{item.title}</h3>
+                <p className="text-sm text-text-light">{item.description}</p>
               </div>
-              <h2 className="text-xl font-semibold text-text dark:text-text-dark group-hover:text-primary dark:group-hover:text-secondary transition-colors">
-                {tool.name}
-              </h2>
-              <p className="mt-2 text-text-light dark:text-text-dark-muted">
-                {tool.description}
-              </p>
-              <span className="inline-flex items-center gap-1 mt-4 text-sm font-medium text-primary dark:text-secondary">
-                Use tool
-                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-              </span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Ad: Below results */}
-      <AdSlot slot="below-results" />
-
-      {/* Why pdftools.one */}
-      <section className="py-12">
-        <h2 className="text-3xl font-bold text-center text-text dark:text-text-dark mb-10">
-          Why Choose pdftools.one?
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center">
-            <div className="w-14 h-14 bg-accent/10 dark:bg-accent/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-text dark:text-text-dark mb-2">100% Private</h3>
-            <p className="text-text-light dark:text-text-dark-muted">
-              Your files are processed entirely in your browser. Nothing is uploaded to any server. Ever.
-            </p>
+            ))}
           </div>
-          <div className="text-center">
-            <div className="w-14 h-14 bg-primary/10 dark:bg-secondary/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-7 h-7 text-primary dark:text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-text dark:text-text-dark mb-2">Lightning Fast</h3>
-            <p className="text-text-light dark:text-text-dark-muted">
-              No waiting for uploads or downloads. Processing starts instantly because everything runs locally.
-            </p>
-          </div>
-          <div className="text-center">
-            <div className="w-14 h-14 bg-purple-500/10 dark:bg-purple-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-7 h-7 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-text dark:text-text-dark mb-2">Completely Free</h3>
-            <p className="text-text-light dark:text-text-dark-muted">
-              No sign-up, no watermarks, no file limits. All tools are free to use with no hidden costs.
-            </p>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Ad: In-content */}
-      <AdSlot slot="in-content" />
-
-      {/* How it works */}
-      <section className="py-12">
-        <h2 className="text-3xl font-bold text-center text-text dark:text-text-dark mb-10">
-          How It Works
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
-          {[
-            { step: "1", title: "Choose a Tool", desc: "Select from 7 powerful PDF tools above." },
-            { step: "2", title: "Add Your Files", desc: "Drag and drop or click to upload your PDFs or images." },
-            { step: "3", title: "Download Result", desc: "Your processed file is ready instantly. Click download." },
-          ].map((item) => (
-            <div key={item.step} className="text-center">
-              <div className="w-10 h-10 bg-primary dark:bg-secondary text-white rounded-full flex items-center justify-center mx-auto mb-4 font-bold">
-                {item.step}
+        {/* Why Choose Us */}
+        <section className="mb-16">
+          <h2 className="text-2xl font-bold text-text mb-8 text-center">Why Choose PDFTools.one?</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {[
+              { title: '100% Private', desc: 'Your files are processed entirely in your browser. Nothing is uploaded to any server.' },
+              { title: 'Completely Free', desc: 'All tools are free to use with no hidden fees, no sign-ups, and no file limits.' },
+              { title: 'Lightning Fast', desc: 'Client-side processing means instant results. No waiting for server uploads or downloads.' },
+              { title: 'Works Offline', desc: 'Once loaded, our tools work without an internet connection since all logic runs locally.' },
+            ].map(item => (
+              <div key={item.title} className="p-6 bg-surface border border-border rounded-xl shadow-sm">
+                <h3 className="font-semibold text-text mb-2">{item.title}</h3>
+                <p className="text-sm text-text-light">{item.desc}</p>
               </div>
-              <h3 className="text-lg font-semibold text-text dark:text-text-dark mb-2">{item.title}</h3>
-              <p className="text-text-light dark:text-text-dark-muted">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
 
-      {/* Ad: Footer */}
-      <AdSlot slot="footer" />
-    </div>
+        <AdSlot slot="footer" />
+      </div>
+    </>
   );
 }
