@@ -5,11 +5,12 @@ import Link from 'next/link';
 import { tools } from '@/lib/tools-data';
 
 export default function HomeToolGrid() {
+  const remaining = tools.slice(3);
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {tools.map((tool) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {remaining.map((tool) => (
         <Link
           key={tool.slug}
           href={tool.slug}
@@ -17,7 +18,7 @@ export default function HomeToolGrid() {
           style={{
             backgroundColor: 'var(--color-bg-card)',
             border: hoveredSlug === tool.slug ? '2px solid var(--color-brand)' : '2px solid var(--color-border)',
-            boxShadow: hoveredSlug === tool.slug ? 'var(--shadow-lg)' : 'var(--shadow-sm)',
+            boxShadow: hoveredSlug === tool.slug ? 'var(--shadow-lg)' : 'var(--shadow-card)',
             transform: hoveredSlug === tool.slug ? 'translateY(-2px)' : 'translateY(0)',
           }}
           onMouseEnter={() => setHoveredSlug(tool.slug)}

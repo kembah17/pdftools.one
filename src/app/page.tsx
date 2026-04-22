@@ -1,4 +1,5 @@
 import HomeToolGrid from '@/components/ui/HomeToolGrid';
+import FeaturedTools from '@/components/ui/FeaturedTools';
 import { AdSlot } from '@/components/ui/AdSlot';
 import WebSiteSchema from '@/components/seo/WebSiteSchema';
 
@@ -7,10 +8,10 @@ export default function HomePage() {
     <>
       <WebSiteSchema />
 
-      {/* Hero */}
+      {/* Hero - milder warm gradient with extra bottom padding for card overlap */}
       <section
-        className="py-16 md:py-24"
-        style={{ backgroundColor: 'var(--color-bg-hero)' }}
+        className="pt-16 md:pt-24 pb-28 md:pb-36 relative"
+        style={{ background: 'var(--color-bg-hero)' }}
       >
         <div className="max-w-5xl mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-6xl font-extrabold mb-6" style={{ color: 'var(--color-text-heading)' }}>
@@ -32,7 +33,7 @@ export default function HomePage() {
               href="/about"
               className="inline-flex items-center justify-center px-8 py-3 rounded-xl text-base font-semibold no-underline transition-all"
               style={{
-                backgroundColor: 'transparent',
+                backgroundColor: 'var(--color-bg-card)',
                 color: 'var(--color-brand)',
                 border: '2px solid var(--color-brand)',
               }}
@@ -43,10 +44,15 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Featured Tools - overlapping the hero */}
+      <div className="max-w-7xl mx-auto px-4" style={{ marginTop: '-5rem' }}>
+        <FeaturedTools />
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 py-12">
         <AdSlot slot="home-leaderboard" />
 
-        {/* Tools Grid */}
+        {/* Remaining Tools Grid */}
         <section id="tools" className="mb-16">
           <div className="text-center mb-10">
             <h2 className="text-3xl font-bold mb-3" style={{ color: 'var(--color-text-heading)' }}>
@@ -77,8 +83,8 @@ export default function HomePage() {
                 className="text-center p-8 rounded-xl"
                 style={{
                   backgroundColor: 'var(--color-bg-card)',
-                  border: '1px solid var(--color-border)',
-                  boxShadow: 'var(--shadow-sm)',
+                  border: '2px solid var(--color-border)',
+                  boxShadow: 'var(--shadow-card)',
                 }}
               >
                 <div
@@ -115,8 +121,8 @@ export default function HomePage() {
                 className="p-6 rounded-xl flex gap-4"
                 style={{
                   backgroundColor: 'var(--color-bg-card)',
-                  border: '1px solid var(--color-border)',
-                  boxShadow: 'var(--shadow-sm)',
+                  border: '2px solid var(--color-border)',
+                  boxShadow: 'var(--shadow-card)',
                 }}
               >
                 <span className="text-3xl shrink-0">{item.icon}</span>
@@ -140,8 +146,8 @@ export default function HomePage() {
           className="mb-16 rounded-xl p-8 md:p-12"
           style={{
             backgroundColor: 'var(--color-bg-card)',
-            border: '1px solid var(--color-border)',
-            boxShadow: 'var(--shadow-sm)',
+            border: '2px solid var(--color-border)',
+            boxShadow: 'var(--shadow-card)',
           }}
         >
           <h2 className="text-2xl font-bold mb-6" style={{ color: 'var(--color-text-heading)' }}>
