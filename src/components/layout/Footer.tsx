@@ -5,8 +5,8 @@ export default function Footer() {
   return (
     <footer
       style={{
-        backgroundColor: 'var(--color-bg-card)',
-        borderTop: '1px solid var(--color-border)',
+        backgroundColor: 'var(--color-footer-bg)',
+        color: 'var(--color-footer-text)',
       }}
     >
       <div className="max-w-7xl mx-auto px-4 py-12">
@@ -20,25 +20,25 @@ export default function Footer() {
               >
                 PDF
               </div>
-              <span className="text-lg font-bold" style={{ color: 'var(--color-text-heading)' }}>
-                PDF<span style={{ color: 'var(--color-brand)' }}>Tools</span>
+              <span className="text-lg font-bold" style={{ color: 'var(--color-footer-text)' }}>
+                PDF<span style={{ color: 'var(--color-footer-link)' }}>Tools</span>
               </span>
             </div>
-            <p className="text-sm leading-relaxed" style={{ color: 'var(--color-text-tertiary)' }}>
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--color-footer-muted)' }}>
               Free online PDF tools that work entirely in your browser. No uploads, no sign-ups, no data collection. Your files never leave your device.
             </p>
           </div>
 
           {/* Tools */}
           <div>
-            <h3 className="font-semibold mb-4" style={{ color: 'var(--color-text-heading)' }}>PDF Tools</h3>
+            <h3 className="font-semibold mb-4" style={{ color: 'var(--color-footer-text)' }}>PDF Tools</h3>
             <ul className="space-y-2">
               {tools.map((tool) => (
                 <li key={tool.slug}>
                   <Link
                     href={tool.slug}
                     className="text-sm no-underline hover:underline"
-                    style={{ color: 'var(--color-text-tertiary)' }}
+                    style={{ color: 'var(--color-footer-muted)' }}
                   >
                     {tool.name}
                   </Link>
@@ -49,20 +49,20 @@ export default function Footer() {
 
           {/* Pages */}
           <div>
-            <h3 className="font-semibold mb-4" style={{ color: 'var(--color-text-heading)' }}>Company</h3>
+            <h3 className="font-semibold mb-4" style={{ color: 'var(--color-footer-text)' }}>Company</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/about" className="text-sm no-underline hover:underline" style={{ color: 'var(--color-text-tertiary)' }}>
+                <Link href="/about" className="text-sm no-underline hover:underline" style={{ color: 'var(--color-footer-muted)' }}>
                   About
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="text-sm no-underline hover:underline" style={{ color: 'var(--color-text-tertiary)' }}>
+                <Link href="/privacy" className="text-sm no-underline hover:underline" style={{ color: 'var(--color-footer-muted)' }}>
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="text-sm no-underline hover:underline" style={{ color: 'var(--color-text-tertiary)' }}>
+                <Link href="/terms" className="text-sm no-underline hover:underline" style={{ color: 'var(--color-footer-muted)' }}>
                   Terms of Service
                 </Link>
               </li>
@@ -73,8 +73,8 @@ export default function Footer() {
         <div
           className="mt-8 pt-8 text-center text-sm"
           style={{
-            borderTop: '1px solid var(--color-border-light)',
-            color: 'var(--color-text-muted)',
+            borderTop: '1px solid var(--color-footer-border)',
+            color: 'var(--color-footer-muted)',
           }}
         >
           &copy; {new Date().getFullYear()} PDFTools.one. All rights reserved. All processing happens in your browser.
