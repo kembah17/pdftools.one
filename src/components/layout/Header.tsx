@@ -65,104 +65,27 @@ export default function Header() {
         <div className="flex items-center gap-3">
           {/* Toggle Switch */}
           <button
-            onClick={toggleTheme}
-            className="relative flex items-center cursor-pointer"
-            style={{
-              width: '56px',
-              height: '28px',
-              borderRadius: '14px',
-              backgroundColor: isDark ? 'var(--color-brand)' : 'var(--color-toggle-track)',
-              border: '2px solid',
-              borderColor: isDark ? 'var(--color-brand-dark)' : 'var(--color-border)',
-              transition: 'all 0.3s ease',
-              padding: '2px',
-            }}
-            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            role="switch"
-            aria-checked={isDark}
-          >
-            {/* Sun icon (left side) */}
-            <span
-              className="absolute flex items-center justify-center"
+              onClick={toggleTheme}
+              aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
               style={{
-                left: '4px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '16px',
-                height: '16px',
-                opacity: isDark ? 0.4 : 0,
-                transition: 'opacity 0.3s ease',
-                color: '#FCD34D',
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "0.25rem",
+                borderRadius: "9999px",
+                border: "2px solid var(--color-border, #CBD5E1)",
+                backgroundColor: dark ? "var(--color-primary, #10B981)" : "var(--color-border, #CBD5E1)",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                width: "4rem",
+                height: "2rem",
+                position: "relative",
+                flexShrink: 0,
               }}
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="12" r="5" />
-                <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" strokeWidth="2" />
-                <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" strokeWidth="2" />
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" strokeWidth="2" />
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" strokeWidth="2" />
-                <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" strokeWidth="2" />
-                <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" strokeWidth="2" />
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" strokeWidth="2" />
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" strokeWidth="2" />
-              </svg>
-            </span>
-
-            {/* Moon icon (right side) */}
-            <span
-              className="absolute flex items-center justify-center"
-              style={{
-                right: '4px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: '16px',
-                height: '16px',
-                opacity: isDark ? 0 : 0.4,
-                transition: 'opacity 0.3s ease',
-                color: 'var(--color-text-tertiary)',
-              }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            </span>
-
-            {/* Sliding thumb */}
-            <span
-              style={{
-                position: 'absolute',
-                top: '2px',
-                left: isDark ? '30px' : '2px',
-                width: '20px',
-                height: '20px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--color-toggle-thumb)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-                transition: 'left 0.3s ease',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {isDark ? (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-brand)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                </svg>
-              ) : (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="5" />
-                  <line x1="12" y1="1" x2="12" y2="3" />
-                  <line x1="12" y1="21" x2="12" y2="23" />
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                  <line x1="1" y1="12" x2="3" y2="12" />
-                  <line x1="21" y1="12" x2="23" y2="12" />
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                </svg>
-              )}
-            </span>
-          </button>
+              <span style={{ position: "absolute", left: "0.375rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.75rem", opacity: dark ? 0.4 : 1, transition: "opacity 0.3s ease", lineHeight: 1 }}>☀️</span>
+              <span style={{ position: "absolute", right: "0.375rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.75rem", opacity: dark ? 1 : 0.4, transition: "opacity 0.3s ease", lineHeight: 1 }}>🌙</span>
+              <span style={{ position: "absolute", top: "2px", left: dark ? "calc(100% - 1.625rem)" : "2px", width: "1.5rem", height: "1.5rem", borderRadius: "50%", backgroundColor: "#FFFFFF", boxShadow: "0 1px 3px rgba(0,0,0,0.3)", transition: "left 0.3s ease" }} />
+            </button>
 
           {/* Mobile hamburger */}
           <button
