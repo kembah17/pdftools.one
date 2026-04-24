@@ -89,53 +89,64 @@ export default function CompressPdfTool() {
 
       // Attempt image re-encoding on each page
       const pages = pdfDoc.getPages();
+
+      // Load pdfjs-dist ONCE outside the loop for performance
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let pdfJsDoc: any = null;
+      let pdfjsAvailable = false;
+      try {
+        const pdfjsLib = await import("pdfjs-dist");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+        const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
+        pdfJsDoc = await loadingTask.promise;
+        pdfjsAvailable = true;
+      } catch {
+        // pdfjs-dist not available, skip image re-encoding
+      }
+
+      // Reuse a single canvas element to avoid memory leaks
+      const canvas = document.createElement("canvas");
+
       for (let i = 0; i < pages.length; i++) {
         const page = pages[i];
         const { width, height } = page.getSize();
 
-        // Create a canvas to re-encode page content as compressed image
-        // This is a best-effort approach for image-heavy PDFs
-        try {
-          const canvas = document.createElement("canvas");
-          const scale = 1.5; // Render at reasonable quality
-          canvas.width = Math.floor(width * scale);
-          canvas.height = Math.floor(height * scale);
+        // Re-encode page content as compressed JPEG image
+        if (pdfjsAvailable && pdfJsDoc) {
+          try {
+            const scale = 1.5;
+            const pdfJsPage = await pdfJsDoc.getPage(i + 1);
+            const viewport = pdfJsPage.getViewport({ scale });
+            canvas.width = Math.floor(viewport.width);
+            canvas.height = Math.floor(viewport.height);
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              await pdfJsPage.render({ canvasContext: ctx, viewport }).promise;
 
-          // Try to render the page using pdfjs-dist for re-encoding
-          const pdfjsLib = await import("pdfjs-dist");
-          pdfjsLib.GlobalWorkerOptions.workerSrc = "";
-          const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer.slice(0) });
-          const pdfJsDoc = await loadingTask.promise;
-          const pdfJsPage = await pdfJsDoc.getPage(i + 1);
-          const viewport = pdfJsPage.getViewport({ scale });
-          canvas.width = Math.floor(viewport.width);
-          canvas.height = Math.floor(viewport.height);
-          const ctx = canvas.getContext("2d");
-          if (ctx) {
-            await pdfJsPage.render({ canvas, canvasContext: ctx, viewport }).promise;
+              // Convert canvas to JPEG and embed back
+              const jpegBlob = await new Promise<Blob | null>((resolve) =>
+                canvas.toBlob((b) => resolve(b), "image/jpeg", 0.72)
+              );
 
-            // Convert canvas to JPEG and embed back
-            const jpegBlob = await new Promise<Blob | null>((resolve) =>
-              canvas.toBlob((b) => resolve(b), "image/jpeg", 0.72)
-            );
+              if (jpegBlob) {
+                const jpegBuffer = await jpegBlob.arrayBuffer();
+                const jpegImage = await pdfDoc.embedJpg(new Uint8Array(jpegBuffer));
 
-            if (jpegBlob) {
-              const jpegBuffer = await jpegBlob.arrayBuffer();
-              const jpegImage = await pdfDoc.embedJpg(new Uint8Array(jpegBuffer));
-
-              // Clear page and draw compressed image
-              page.drawImage(jpegImage, {
-                x: 0,
-                y: 0,
-                width,
-                height,
-              });
+                // Draw compressed image over page
+                page.drawImage(jpegImage, {
+                  x: 0,
+                  y: 0,
+                  width,
+                  height,
+                });
+              }
             }
+            pdfJsPage.cleanup();
+          } catch {
+            // If image re-encoding fails for a page, skip it
+            // Metadata removal and save optimization still apply
           }
-          pdfJsDoc.destroy();
-        } catch {
-          // If image re-encoding fails for a page, skip it
-          // Metadata removal and save optimization still apply
         }
 
         setProcessing({
@@ -144,6 +155,13 @@ export default function CompressPdfTool() {
           message: `Optimizing page ${i + 1} of ${pages.length}...`,
         });
       }
+
+      // Clean up pdfjs document and canvas
+      if (pdfjsAvailable && pdfJsDoc) {
+        pdfJsDoc.destroy();
+      }
+      canvas.width = 0;
+      canvas.height = 0;
 
       setProcessing({ status: "processing", progress: 90, message: "Saving optimized PDF..." });
 

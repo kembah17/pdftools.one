@@ -63,6 +63,11 @@ export default function PdfToJpgTool() {
   const [pages, setPages] = useState<ConvertedPage[]>([]);
 
   const handleFiles = useCallback((files: File[]) => {
+    // Revoke old object URLs to prevent memory leaks
+    setPages((prev) => {
+      prev.forEach((p) => URL.revokeObjectURL(p.url));
+      return [];
+    });
     if (files.length > 0) {
       setFile(files[0]);
       setPages([]);

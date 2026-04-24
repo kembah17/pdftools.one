@@ -14,7 +14,7 @@ export const defaultPreprocessingOptions: PreprocessingOptions = {
   contrastIntensity: 150,
   noiseRemoval: false,
   deskew: false,
-  binarize: false,
+  binarize: true,
   binarizeThreshold: 128,
 };
 

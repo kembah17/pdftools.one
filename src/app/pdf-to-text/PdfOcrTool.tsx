@@ -136,7 +136,7 @@ export default function PdfOcrTool() {
       });
 
       const Tesseract = await import("tesseract.js");
-      const worker = await Tesseract.createWorker(language, undefined, {
+      const worker = await Tesseract.createWorker(language, 1, {
         logger: (m: { status: string; progress: number }) => {
           if (m.status === "recognizing text") {
             setPageProgress(Math.round(m.progress * 100));
@@ -169,8 +169,16 @@ export default function PdfOcrTool() {
         // Apply preprocessing
         const processedCanvas = applyPreprocessing(canvas, preprocessing);
 
-        // Run OCR
-        const result = await worker.recognize(processedCanvas);
+        // Convert canvas to Blob for reliable OCR input (avoids silent failures with raw canvas)
+        const ocrBlob = await new Promise<Blob>((resolve, reject) => {
+          processedCanvas.toBlob(
+            (b) => (b ? resolve(b) : reject(new Error("Canvas toBlob failed"))),
+            "image/png"
+          );
+        });
+
+        // Run OCR on blob
+        const result = await worker.recognize(ocrBlob);
         const pageText = result.data.text;
         const pageConfidence = result.data.confidence;
 
