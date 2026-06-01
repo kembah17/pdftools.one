@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     siteName: 'PDFTools.one',
     title: 'PDFTools.one — Free Online PDF Tools',
     description: 'Free online PDF tools: merge, split, compress, convert, and rotate. Privacy-first — all processing happens in your browser.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'PDF Tools' }],
   },
   twitter: {
     card: 'summary_large_image',
