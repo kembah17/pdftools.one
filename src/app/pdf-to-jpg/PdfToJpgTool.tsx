@@ -84,7 +84,7 @@ export default function PdfToJpgTool() {
       const arrayBuffer = await file.arrayBuffer();
 
       const pdfjsLib = await import("pdfjs-dist");
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
       setProcessing({ status: "processing", progress: 15, message: "Parsing document..." });
 

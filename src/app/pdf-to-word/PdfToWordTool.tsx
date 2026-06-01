@@ -77,7 +77,7 @@ export default function PdfToWordTool() {
       setProcessing({ status: "processing", progress: 15, message: "Loading PDF engine..." });
 
       const pdfjsLib = await import("pdfjs-dist");
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
       setProcessing({ status: "processing", progress: 25, message: "Parsing PDF document..." });
 

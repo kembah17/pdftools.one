@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { FileUpload } from "@/components/ui/FileUpload";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { PrivacyBadge } from "@/components/ui/PrivacyBadge";
@@ -10,6 +10,7 @@ import { FAQSchema } from "@/components/seo/FAQSchema";
 import { RelatedTools } from "@/components/seo/RelatedTools";
 import { formatFileSize, generateId, downloadBlob } from "@/lib/utils";
 import type { PDFFile, ProcessingState, FAQItem } from "@/types";
+import { useDeviceTier, formatMaxSize } from "@/hooks/useDeviceTier";
 
 const faqItems: FAQItem[] = [
   {
@@ -40,16 +41,56 @@ const faqItems: FAQItem[] = [
 ];
 
 export default function MergePdfTool() {
+  const deviceConfig = useDeviceTier();
   const [files, setFiles] = useState<PDFFile[]>([]);
   const [processing, setProcessing] = useState<ProcessingState>({
     status: "idle",
     progress: 0,
   });
   const [resultBlob, setResultBlob] = useState<Blob | null>(null);
+  const [fileSizeError, setFileSizeError] = useState("");
+  const [memoryWarning, setMemoryWarning] = useState("");
+  const abortRef = useRef(false);
+
+  const validateFiles = useCallback((newFiles: File[]): { valid: File[]; error: string } => {
+    const maxPerFile = deviceConfig.maxPdfFileSize;
+    const maxTotal = deviceConfig.maxTotalSize;
+
+    // Check individual file sizes
+    for (const f of newFiles) {
+      if (f.size > maxPerFile) {
+        return {
+          valid: [],
+          error: `"${f.name}" (${formatFileSize(f.size)}) exceeds the ${formatMaxSize(maxPerFile)} per-file limit for your device. Try a smaller file or use a desktop computer.`,
+        };
+      }
+    }
+
+    // Check total size including existing files
+    const existingTotal = files.reduce((sum, f) => sum + f.size, 0);
+    const newTotal = newFiles.reduce((sum, f) => sum + f.size, 0);
+    const combinedTotal = existingTotal + newTotal;
+
+    if (combinedTotal > maxTotal) {
+      return {
+        valid: [],
+        error: `Total file size (${formatFileSize(combinedTotal)}) exceeds the ${formatMaxSize(maxTotal)} limit for your device. Remove some files or use a desktop computer.`,
+      };
+    }
+
+    return { valid: newFiles, error: "" };
+  }, [deviceConfig.maxPdfFileSize, deviceConfig.maxTotalSize, files]);
 
   const handleFiles = useCallback(async (newFiles: File[]) => {
+    const { valid, error } = validateFiles(newFiles);
+    if (error) {
+      setFileSizeError(error);
+      return;
+    }
+    setFileSizeError("");
+
     const pdfFiles: PDFFile[] = [];
-    for (const file of newFiles) {
+    for (const file of valid) {
       try {
         const arrayBuffer = await file.arrayBuffer();
         const { PDFDocument } = await import("pdf-lib");
@@ -73,11 +114,23 @@ export default function MergePdfTool() {
     }
     setFiles((prev) => [...prev, ...pdfFiles]);
     setResultBlob(null);
-  }, []);
+
+    // Memory warning check
+    const totalSize = [...files, ...pdfFiles].reduce((sum, f) => sum + f.size, 0);
+    if (totalSize > deviceConfig.maxTotalSize * 0.7) {
+      setMemoryWarning(
+        `You're using ${formatFileSize(totalSize)} of ${formatMaxSize(deviceConfig.maxTotalSize)} available. Large merges may slow down your browser.`
+      );
+    } else {
+      setMemoryWarning("");
+    }
+  }, [validateFiles, files, deviceConfig.maxTotalSize]);
 
   const removeFile = useCallback((id: string) => {
     setFiles((prev) => prev.filter((f) => f.id !== id));
     setResultBlob(null);
+    setFileSizeError("");
+    setMemoryWarning("");
   }, []);
 
   const moveFile = useCallback((index: number, direction: -1 | 1) => {
@@ -91,10 +144,16 @@ export default function MergePdfTool() {
     setResultBlob(null);
   }, []);
 
+  const cancelProcessing = useCallback(() => {
+    abortRef.current = true;
+    setProcessing({ status: "idle", progress: 0 });
+  }, []);
+
   const mergePdfs = useCallback(async () => {
     if (files.length < 2) return;
     setProcessing({ status: "processing", progress: 0, message: "Starting merge..." });
     setResultBlob(null);
+    abortRef.current = false;
 
     try {
       const { PDFDocument } = await import("pdf-lib");
@@ -102,10 +161,15 @@ export default function MergePdfTool() {
       const total = files.length;
 
       for (let i = 0; i < total; i++) {
+        if (abortRef.current) {
+          setProcessing({ status: "idle", progress: 0 });
+          return;
+        }
+
         setProcessing({
           status: "processing",
           progress: Math.round((i / total) * 90),
-          message: `Processing ${files[i].name}...`,
+          message: `Processing ${files[i].name} (${i + 1}/${total})...`,
         });
 
         const arrayBuffer = await files[i].file.arrayBuffer();
@@ -114,17 +178,28 @@ export default function MergePdfTool() {
         pages.forEach((page) => merged.addPage(page));
       }
 
+      if (abortRef.current) {
+        setProcessing({ status: "idle", progress: 0 });
+        return;
+      }
+
       setProcessing({ status: "processing", progress: 95, message: "Saving document..." });
       const pdfBytes = await merged.save();
       const blob = new Blob([new Uint8Array(pdfBytes)], { type: "application/pdf" });
       setResultBlob(blob);
       setProcessing({ status: "complete", progress: 100, message: "Merge complete!" });
     } catch (err) {
-      setProcessing({
-        status: "error",
-        progress: 0,
-        message: err instanceof Error ? err.message : "An error occurred during merge.",
-      });
+      if (!abortRef.current) {
+        const isMemoryError = err instanceof Error &&
+          (err.message.includes("memory") || err.message.includes("allocation") || err.message.includes("ArrayBuffer"));
+        setProcessing({
+          status: "error",
+          progress: 0,
+          message: isMemoryError
+            ? "Out of memory. Try fewer or smaller files, or use a desktop computer."
+            : (err instanceof Error ? err.message : "An error occurred during merge."),
+        });
+      }
     }
   }, [files]);
 
@@ -135,12 +210,16 @@ export default function MergePdfTool() {
   }, [resultBlob]);
 
   const reset = useCallback(() => {
+    abortRef.current = true;
     setFiles([]);
     setProcessing({ status: "idle", progress: 0 });
     setResultBlob(null);
+    setFileSizeError("");
+    setMemoryWarning("");
   }, []);
 
   const totalPages = files.reduce((sum, f) => sum + (f.pages ?? 0), 0);
+  const totalSize = files.reduce((sum, f) => sum + f.size, 0);
   const isProcessing = processing.status === "processing";
 
   return (
@@ -158,9 +237,23 @@ export default function MergePdfTool() {
       <PrivacyBadge className="mb-4" />
       <AdSlot slot="leaderboard" />
 
+      {/* File Size Error */}
+      {fileSizeError && (
+        <div className="mb-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
+          ⚠️ {fileSizeError}
+        </div>
+      )}
+
+      {/* Memory Warning */}
+      {memoryWarning && (
+        <div className="mb-4 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300 text-sm">
+          ⚡ {memoryWarning}
+        </div>
+      )}
+
       {/* Upload Area */}
       <section className="mb-8">
-        <FileUpload accept=".pdf" multiple={true} maxSize={100 * 1024 * 1024} onFiles={handleFiles}>
+        <FileUpload accept=".pdf" multiple={true} maxSize={deviceConfig.maxPdfFileSize} onFiles={handleFiles}>
           <div className="space-y-3">
             <svg className="w-12 h-12 mx-auto text-text-light dark:text-text-dark-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
@@ -169,10 +262,14 @@ export default function MergePdfTool() {
               Drag & drop PDF files here
             </p>
             <p className="text-sm text-text-light dark:text-text-dark-muted">
-              or click to browse · Max 100 MB per file
+              or click to browse · Max {formatMaxSize(deviceConfig.maxPdfFileSize)} per file · {formatMaxSize(deviceConfig.maxTotalSize)} total
             </p>
           </div>
         </FileUpload>
+        {/* Device tier info */}
+        <p className="text-center text-xs text-text-light dark:text-text-dark-muted mt-2">
+          📱 Detected: {deviceConfig.tier} · Limits: {formatMaxSize(deviceConfig.maxPdfFileSize)}/file, {formatMaxSize(deviceConfig.maxTotalSize)} total
+        </p>
       </section>
 
       {/* File List */}
@@ -180,7 +277,7 @@ export default function MergePdfTool() {
         <section className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-text dark:text-text-dark">
-              {files.length} file{files.length !== 1 ? "s" : ""} · {totalPages} page{totalPages !== 1 ? "s" : ""}
+              {files.length} file{files.length !== 1 ? "s" : ""} · {totalPages} page{totalPages !== 1 ? "s" : ""} · {formatFileSize(totalSize)}
             </h2>
             <button onClick={reset} className="btn-secondary text-sm" disabled={isProcessing}>
               Clear All
@@ -243,19 +340,33 @@ export default function MergePdfTool() {
             ))}
           </ul>
 
+          {/* Processing Warning */}
+          {isProcessing && (
+            <div className="mt-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-sm">
+              ⏱️ {deviceConfig.pdfWarning}
+            </div>
+          )}
+
           {/* Merge Button & Progress */}
           <div className="mt-6 flex flex-col items-center gap-4">
             {isProcessing && (
               <div className="w-full max-w-md">
-                <ProgressBar progress={processing.progress} />
-                <p className="text-sm text-text-light dark:text-text-dark-muted text-center mt-2">
-                  {processing.message}
-                </p>
+                <ProgressBar progress={processing.progress} label={processing.message} />
+                <div className="flex justify-center mt-2">
+                  <button
+                    onClick={cancelProcessing}
+                    className="px-3 py-1 text-xs font-medium rounded-md bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                  >
+                    ✕ Cancel
+                  </button>
+                </div>
               </div>
             )}
 
             {processing.status === "error" && (
-              <p className="text-sm text-red-500 text-center">{processing.message}</p>
+              <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm text-center">
+                {processing.message}
+              </div>
             )}
 
             {!resultBlob ? (
@@ -293,8 +404,8 @@ export default function MergePdfTool() {
           <h3 className="text-lg font-semibold text-text dark:text-text-dark">Step-by-Step Instructions</h3>
           <p>
             <strong>1. Upload your files.</strong> Click the upload area or drag and drop multiple
-            PDF documents at once. Each file can be up to 100 MB. The tool reads the page count
-            of every file instantly so you can verify you selected the right documents.
+            PDF documents at once. The tool reads the page count of every file instantly so you can
+            verify you selected the right documents.
           </p>
           <p>
             <strong>2. Arrange the order.</strong> Use the up and down arrow buttons next to each
@@ -304,13 +415,11 @@ export default function MergePdfTool() {
           <p>
             <strong>3. Click Merge.</strong> Press the &ldquo;Merge PDFs&rdquo; button and watch the
             progress bar. The tool processes each file sequentially, copying all pages into a new
-            combined document. Processing speed depends on the total number of pages and your
-            device&rsquo;s performance.
+            combined document.
           </p>
           <p>
             <strong>4. Download the result.</strong> Once merging is complete, click the download
-            button to save your combined PDF. The file is generated entirely in your browser memory
-            and is never transmitted over the internet.
+            button to save your combined PDF.
           </p>
 
           <AdSlot slot="in-content" />
@@ -331,25 +440,6 @@ export default function MergePdfTool() {
             tool. Also keep in mind that the merged file size will be approximately the sum of all
             input files. If you need a smaller output, consider compressing the merged PDF afterward
             using our Compress PDF tool.
-          </p>
-          <p>
-            When merging scanned documents, the page orientation of each source file is preserved.
-            If some pages appear rotated in the final document, use our Rotate PDF tool to correct
-            individual pages before or after merging.
-          </p>
-          <h3 className="text-lg font-semibold text-text dark:text-text-dark">Common Use Cases</h3>
-          <p>
-            <strong>Business reports:</strong> Combine a cover page, table of contents, multiple
-            chapter files, and appendices into a single professional document. <strong>Tax
-            filing:</strong> Merge W-2 forms, 1099s, receipts, and supporting schedules into one
-            PDF for your accountant. <strong>Academic submissions:</strong> Package your thesis
-            chapters, bibliography, and supplementary materials into the required single-file
-            format. <strong>Legal documents:</strong> Assemble contracts, exhibits, and signature
-            pages into a complete filing package.
-          </p>
-          <p>
-            No matter your use case, pdftools.one makes it fast, free, and completely private. Try
-            it now by uploading your first files above.
           </p>
         </div>
       </section>
