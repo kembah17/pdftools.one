@@ -117,7 +117,7 @@
   --color-dark-muted: #94A3B8;
   --color-link: #F87171;
 
-  --color-primary-text: #FFFFFF;
+  --color-primary-text: #0F1419;
   --color-bg-primary: #0B1120;
   --color-bg-secondary: #162032;
   --color-bg-card: #1A2538;
@@ -188,3 +188,76 @@ body {
 input, textarea, select { background-color: var(--color-bg-input); color: var(--color-text-primary); border-color: var(--color-border); }
 input:focus, textarea:focus, select:focus { outline: none; border-color: var(--color-brand); box-shadow: 0 0 0 3px rgba(220,38,38,0.15); }
 .dark input:focus, .dark textarea:focus, .dark select:focus { box-shadow: 0 0 0 3px rgba(248,113,113,0.2); }
+
+/* === Contrast Accessibility Fixes === */
+.dark .ad-slot-container {
+  background-color: rgba(220, 38, 38, 0.12) !important;
+  color: #CBD5E1 !important;
+  border-color: rgba(220, 38, 38, 0.25) !important;
+}
+
+/* === Component-Level Contrast Fixes === */
+
+/* Dark mode: text-primary headings/links need lighter color for contrast */
+.dark h3.text-primary,
+.dark h2.text-primary,
+.dark .text-primary h3,
+.dark .font-semibold.text-primary,
+.dark .font-bold.text-primary,
+.dark a.text-primary,
+.dark .text-2xl.text-primary,
+.dark .text-3xl.text-primary,
+.dark span.text-primary,
+.dark div.text-primary,
+.dark td.text-primary,
+.dark p.text-primary {
+  color: #F87171 !important;
+}
+
+/* Light mode: buttons with primary bg need white text */
+.bg-primary {
+  color: #FFFFFF;
+}
+
+/* Dark mode: buttons with primary bg need white text */
+.dark .bg-primary {
+  color: #FFFFFF;
+}
+
+/* Fix button text on colored backgrounds */
+.dark [style*="backgroundColor"][style*="primary"] {
+  color: #FFFFFF;
+}
+
+/* === Enhanced Contrast Overrides === */
+
+/* Buttons with primary/brand bg MUST have white text */
+[style*="backgroundColor"][style*="--color-primary"],
+[style*="backgroundColor"][style*="--color-brand"] {
+  color: #FFFFFF !important;
+}
+
+/* Dark mode: links using text-primary need brand color */
+.dark a[class*="text-primary"],
+.dark .text-link {
+  color: #F87171 !important;
+}
+
+/* Light mode: ensure links have adequate contrast */
+a.text-link {
+  color: var(--color-link-accessible, var(--color-link)) !important;
+}
+
+/* Ad slot text: ensure adequate contrast */
+.ad-slot {
+  color: #64748B;
+}
+.dark .ad-slot {
+  color: #94A3B8;
+}
+
+/* Badge/tag text on colored backgrounds */
+.dark .badge-primary,
+.dark [class*="badge"][class*="primary"] {
+  color: #FFFFFF !important;
+}
