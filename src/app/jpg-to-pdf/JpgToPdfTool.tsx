@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { FileUpload } from "@/components/ui/FileUpload";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { PrivacyBadge } from "@/components/ui/PrivacyBadge";
@@ -10,6 +10,7 @@ import { FAQSchema } from "@/components/seo/FAQSchema";
 import { RelatedTools } from "@/components/seo/RelatedTools";
 import { formatFileSize, generateId, downloadBlob } from "@/lib/utils";
 import type { ProcessingState, FAQItem, PageSize } from "@/types";
+import { useDeviceTier, formatMaxSize } from "@/hooks/useDeviceTier";
 
 const faqItems: FAQItem[] = [
   {
@@ -52,8 +53,8 @@ interface ImageFile {
 type MarginSize = "none" | "small" | "medium" | "large";
 
 const pageSizeOptions: Record<PageSize, { label: string; width: number; height: number }> = {
-  a4: { label: "A4 (210 × 297 mm)", width: 595.28, height: 841.89 },
-  letter: { label: "Letter (8.5 × 11 in)", width: 612, height: 792 },
+  a4: { label: "A4 (210 \u00d7 297 mm)", width: 595.28, height: 841.89 },
+  letter: { label: "Letter (8.5 \u00d7 11 in)", width: 612, height: 792 },
   fit: { label: "Fit to Image", width: 0, height: 0 },
 };
 
@@ -62,6 +63,13 @@ const marginOptions: Record<MarginSize, { label: string; value: number }> = {
   small: { label: "Small (20pt)", value: 20 },
   medium: { label: "Medium (40pt)", value: 40 },
   large: { label: "Large (60pt)", value: 60 },
+};
+
+// Device tier batch limits
+const BATCH_LIMITS: Record<string, number> = {
+  mobile: 10,
+  tablet: 20,
+  desktop: 50,
 };
 
 function loadImage(file: File): Promise<HTMLImageElement> {
@@ -74,6 +82,7 @@ function loadImage(file: File): Promise<HTMLImageElement> {
 }
 
 export default function JpgToPdfTool() {
+  const deviceConfig = useDeviceTier();
   const [images, setImages] = useState<ImageFile[]>([]);
   const [pageSize, setPageSize] = useState<PageSize>("a4");
   const [margin, setMargin] = useState<MarginSize>("medium");
@@ -82,10 +91,55 @@ export default function JpgToPdfTool() {
     progress: 0,
   });
   const [resultBlob, setResultBlob] = useState<Blob | null>(null);
+  const [batchWarning, setBatchWarning] = useState("");
+  const [fileSizeWarning, setFileSizeWarning] = useState("");
+  const [deviceWarning, setDeviceWarning] = useState("");
+  const abortRef = useRef(false);
+
+  const maxImages = BATCH_LIMITS[deviceConfig.tier] || 50;
 
   const handleFiles = useCallback(async (files: File[]) => {
+    setBatchWarning("");
+    setFileSizeWarning("");
+
+    // Check batch limit
+    const currentCount = images.length;
+    const availableSlots = maxImages - currentCount;
+
+    if (availableSlots <= 0) {
+      setBatchWarning(
+        `Maximum ${maxImages} images allowed on ${deviceConfig.tier}. Remove some images first or use a desktop computer for larger batches.`
+      );
+      return;
+    }
+
+    let filesToProcess = files;
+    if (files.length > availableSlots) {
+      filesToProcess = files.slice(0, availableSlots);
+      setBatchWarning(
+        `Only ${availableSlots} of ${files.length} images added. Maximum ${maxImages} images on ${deviceConfig.tier}. Use a desktop computer for larger batches.`
+      );
+    }
+
+    // File size validation
+    const oversizedFiles: string[] = [];
+    const validFiles: File[] = [];
+    for (const file of filesToProcess) {
+      if (file.size > deviceConfig.maxPdfFileSize) {
+        oversizedFiles.push(`${file.name} (${formatFileSize(file.size)})`);
+      } else {
+        validFiles.push(file);
+      }
+    }
+
+    if (oversizedFiles.length > 0) {
+      setFileSizeWarning(
+        `${oversizedFiles.length} file(s) skipped (too large for ${deviceConfig.tier}, max ${formatMaxSize(deviceConfig.maxPdfFileSize)}): ${oversizedFiles.slice(0, 3).join(", ")}${oversizedFiles.length > 3 ? ` and ${oversizedFiles.length - 3} more` : ""}`
+      );
+    }
+
     const newImages: ImageFile[] = [];
-    for (const file of files) {
+    for (const file of validFiles) {
       try {
         const img = await loadImage(file);
         newImages.push({
@@ -103,7 +157,7 @@ export default function JpgToPdfTool() {
     }
     setImages((prev) => [...prev, ...newImages]);
     setResultBlob(null);
-  }, []);
+  }, [images.length, maxImages, deviceConfig.tier, deviceConfig.maxPdfFileSize]);
 
   const removeImage = useCallback((id: string) => {
     setImages((prev) => {
@@ -112,6 +166,7 @@ export default function JpgToPdfTool() {
       return prev.filter((img) => img.id !== id);
     });
     setResultBlob(null);
+    setBatchWarning("");
   }, []);
 
   const moveImage = useCallback((index: number, direction: -1 | 1) => {
@@ -125,10 +180,20 @@ export default function JpgToPdfTool() {
     setResultBlob(null);
   }, []);
 
+  const cancelCreation = useCallback(() => {
+    abortRef.current = true;
+  }, []);
+
   const createPdf = useCallback(async () => {
     if (images.length === 0) return;
 
     setProcessing({ status: "processing", progress: 5, message: "Initializing..." });
+    abortRef.current = false;
+
+    // Show device tier warning on mobile/tablet
+    if (deviceConfig.tier !== "desktop") {
+      setDeviceWarning(deviceConfig.pdfWarning);
+    }
 
     try {
       const { PDFDocument } = await import("pdf-lib");
@@ -136,6 +201,14 @@ export default function JpgToPdfTool() {
       const marginPt = marginOptions[margin].value;
 
       for (let i = 0; i < images.length; i++) {
+        // Check for cancellation
+        if (abortRef.current) {
+          abortRef.current = false;
+          setProcessing({ status: "idle", progress: 0 });
+          setDeviceWarning("");
+          return;
+        }
+
         setProcessing({
           status: "processing",
           progress: 5 + Math.round((i / images.length) * 85),
@@ -230,6 +303,14 @@ export default function JpgToPdfTool() {
         });
       }
 
+      // Final cancellation check before saving
+      if (abortRef.current) {
+        abortRef.current = false;
+        setProcessing({ status: "idle", progress: 0 });
+        setDeviceWarning("");
+        return;
+      }
+
       setProcessing({ status: "processing", progress: 95, message: "Saving PDF..." });
 
       const pdfBytes = await pdfDoc.save();
@@ -237,13 +318,15 @@ export default function JpgToPdfTool() {
       setResultBlob(blob);
       setProcessing({ status: "complete", progress: 100, message: "PDF created!" });
     } catch (err) {
-      setProcessing({
-        status: "error",
-        progress: 0,
-        message: err instanceof Error ? err.message : "Failed to create PDF",
-      });
+      if (!abortRef.current) {
+        setProcessing({
+          status: "error",
+          progress: 0,
+          message: err instanceof Error ? err.message : "Failed to create PDF",
+        });
+      }
     }
-  }, [images, pageSize, margin]);
+  }, [images, pageSize, margin, deviceConfig.tier, deviceConfig.pdfWarning]);
 
   const handleDownload = useCallback(() => {
     if (!resultBlob) return;
@@ -251,10 +334,14 @@ export default function JpgToPdfTool() {
   }, [resultBlob]);
 
   const reset = useCallback(() => {
+    abortRef.current = true;
     images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
     setImages([]);
     setResultBlob(null);
     setProcessing({ status: "idle", progress: 0 });
+    setBatchWarning("");
+    setFileSizeWarning("");
+    setDeviceWarning("");
   }, [images]);
 
   const isProcessing = processing.status === "processing";
@@ -276,6 +363,19 @@ export default function JpgToPdfTool() {
 
       <AdSlot slot="leaderboard" />
 
+      {/* Warnings */}
+      {batchWarning && (
+        <div className="mb-4 p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300 text-sm">
+          {batchWarning}
+        </div>
+      )}
+
+      {fileSizeWarning && (
+        <div className="mb-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
+          {fileSizeWarning}
+        </div>
+      )}
+
       {/* Upload Area */}
       <section className="my-8">
         <FileUpload
@@ -283,6 +383,9 @@ export default function JpgToPdfTool() {
           multiple={true}
           onFiles={handleFiles}
         />
+        <p className="text-center text-xs text-text-light dark:text-text-dark-muted mt-2">
+          Detected: {deviceConfig.tier} &middot; Max {maxImages} images &middot; Max {formatMaxSize(deviceConfig.maxPdfFileSize)} per file
+        </p>
       </section>
 
       {/* Image List & Options */}
@@ -290,7 +393,7 @@ export default function JpgToPdfTool() {
         <section className="my-8 p-6 rounded-xl bg-surface dark:bg-surface-dark border border-border dark:border-border-dark">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-text dark:text-text-dark">
-              Images ({images.length})
+              Images ({images.length}/{maxImages})
             </h2>
             <button
               onClick={reset}
@@ -415,6 +518,13 @@ export default function JpgToPdfTool() {
             </div>
           </div>
 
+          {/* Device Warning */}
+          {deviceWarning && (
+            <div className="mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-sm">
+              {deviceWarning}
+            </div>
+          )}
+
           {/* Progress & Actions */}
           <div className="flex flex-col items-center gap-4">
             {isProcessing && (
@@ -431,13 +541,23 @@ export default function JpgToPdfTool() {
             )}
 
             {!resultBlob ? (
-              <button
-                onClick={createPdf}
-                disabled={images.length === 0 || isProcessing}
-                className="btn-primary text-lg px-8 py-3"
-              >
-                {isProcessing ? "Creating PDF..." : `Create PDF from ${images.length} Image${images.length !== 1 ? "s" : ""}`}
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={createPdf}
+                  disabled={images.length === 0 || isProcessing}
+                  className="btn-primary text-lg px-8 py-3"
+                >
+                  {isProcessing ? "Creating PDF..." : `Create PDF from ${images.length} Image${images.length !== 1 ? "s" : ""}`}
+                </button>
+                {isProcessing && (
+                  <button
+                    onClick={cancelCreation}
+                    className="px-6 py-3 text-lg font-medium rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
             ) : (
               <div className="flex gap-4">
                 <button onClick={handleDownload} className="btn-accent text-lg px-8 py-3">

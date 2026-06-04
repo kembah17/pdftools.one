@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { FileUpload } from "@/components/ui/FileUpload";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { PrivacyBadge } from "@/components/ui/PrivacyBadge";
@@ -10,6 +10,7 @@ import { FAQSchema } from "@/components/seo/FAQSchema";
 import { RelatedTools } from "@/components/seo/RelatedTools";
 import { formatFileSize, downloadBlob } from "@/lib/utils";
 import type { ProcessingState, FAQItem, ImageQuality } from "@/types";
+import { useDeviceTier, formatMaxSize } from "@/hooks/useDeviceTier";
 
 const faqItems: FAQItem[] = [
   {
@@ -53,7 +54,21 @@ const qualityPresets: Record<ImageQuality, { label: string; value: number; scale
   high: { label: "High (92%)", value: 0.92, scale: 2 },
 };
 
+// Mobile-capped scales to prevent memory issues on constrained devices
+const mobileScaleCaps: Record<ImageQuality, number> = {
+  low: 1,
+  medium: 1.0,
+  high: 1.5,
+};
+
+const tabletScaleCaps: Record<ImageQuality, number> = {
+  low: 1,
+  medium: 1.5,
+  high: 1.5,
+};
+
 export default function PdfToJpgTool() {
+  const deviceConfig = useDeviceTier();
   const [file, setFile] = useState<File | null>(null);
   const [quality, setQuality] = useState<ImageQuality>("medium");
   const [processing, setProcessing] = useState<ProcessingState>({
@@ -61,6 +76,9 @@ export default function PdfToJpgTool() {
     progress: 0,
   });
   const [pages, setPages] = useState<ConvertedPage[]>([]);
+  const [fileSizeError, setFileSizeError] = useState("");
+  const [deviceWarning, setDeviceWarning] = useState("");
+  const abortRef = useRef(false);
 
   const handleFiles = useCallback((files: File[]) => {
     // Revoke old object URLs to prevent memory leaks
@@ -69,16 +87,36 @@ export default function PdfToJpgTool() {
       return [];
     });
     if (files.length > 0) {
-      setFile(files[0]);
+      const uploaded = files[0];
+      // File size validation against device tier limits
+      if (uploaded.size > deviceConfig.maxPdfFileSize) {
+        setFileSizeError(
+          `File too large (${formatFileSize(uploaded.size)}). Maximum for your device: ${formatMaxSize(deviceConfig.maxPdfFileSize)}. Try a smaller file or use a desktop computer.`
+        );
+        return;
+      }
+      setFileSizeError("");
+      setDeviceWarning("");
+      setFile(uploaded);
       setPages([]);
       setProcessing({ status: "idle", progress: 0 });
     }
+  }, [deviceConfig.maxPdfFileSize]);
+
+  const cancelConversion = useCallback(() => {
+    abortRef.current = true;
   }, []);
 
   const convertPdf = useCallback(async () => {
     if (!file) return;
 
     setProcessing({ status: "processing", progress: 5, message: "Loading PDF..." });
+    abortRef.current = false;
+
+    // Show device tier warning on mobile/tablet
+    if (deviceConfig.tier !== "desktop") {
+      setDeviceWarning(deviceConfig.pdfWarning);
+    }
 
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -94,9 +132,29 @@ export default function PdfToJpgTool() {
       const pdfDoc = await loadingTask.promise;
       const totalPages = pdfDoc.numPages;
       const preset = qualityPresets[quality];
+
+      // Apply device-tier scale caps to prevent memory issues
+      let effectiveScale = preset.scale;
+      if (deviceConfig.tier === "mobile") {
+        effectiveScale = Math.min(effectiveScale, mobileScaleCaps[quality]);
+      } else if (deviceConfig.tier === "tablet") {
+        effectiveScale = Math.min(effectiveScale, tabletScaleCaps[quality]);
+      }
+
       const convertedPages: ConvertedPage[] = [];
 
       for (let i = 1; i <= totalPages; i++) {
+        // Check for cancellation
+        if (abortRef.current) {
+          // Cleanup partial results
+          convertedPages.forEach((p) => URL.revokeObjectURL(p.url));
+          abortRef.current = false;
+          pdfDoc.destroy();
+          setProcessing({ status: "idle", progress: 0 });
+          setDeviceWarning("");
+          return;
+        }
+
         setProcessing({
           status: "processing",
           progress: 15 + Math.round((i / totalPages) * 80),
@@ -104,7 +162,7 @@ export default function PdfToJpgTool() {
         });
 
         const page = await pdfDoc.getPage(i);
-        const viewport = page.getViewport({ scale: preset.scale });
+        const viewport = page.getViewport({ scale: effectiveScale });
 
         const canvas = document.createElement("canvas");
         canvas.width = Math.floor(viewport.width);
@@ -139,13 +197,19 @@ export default function PdfToJpgTool() {
       setPages(convertedPages);
       setProcessing({ status: "complete", progress: 100, message: "Conversion complete!" });
     } catch (err) {
-      setProcessing({
-        status: "error",
-        progress: 0,
-        message: err instanceof Error ? err.message : "Failed to convert PDF",
-      });
+      if (!abortRef.current) {
+        const isMemoryError = err instanceof Error &&
+          (err.message.includes("memory") || err.message.includes("allocation") || err.message.includes("ArrayBuffer"));
+        setProcessing({
+          status: "error",
+          progress: 0,
+          message: isMemoryError
+            ? "Out of memory. Try a lower quality setting, fewer pages, or use a desktop computer."
+            : (err instanceof Error ? err.message : "Failed to convert PDF"),
+        });
+      }
     }
-  }, [file, quality]);
+  }, [file, quality, deviceConfig.tier, deviceConfig.pdfWarning]);
 
   const downloadPage = useCallback(
     (page: ConvertedPage) => {
@@ -189,11 +253,14 @@ export default function PdfToJpgTool() {
   }, [file, pages]);
 
   const reset = useCallback(() => {
+    abortRef.current = true;
     // Revoke object URLs to free memory
     pages.forEach((p) => URL.revokeObjectURL(p.url));
     setFile(null);
     setPages([]);
     setProcessing({ status: "idle", progress: 0 });
+    setFileSizeError("");
+    setDeviceWarning("");
   }, [pages]);
 
   const isProcessing = processing.status === "processing";
@@ -215,10 +282,20 @@ export default function PdfToJpgTool() {
 
       <AdSlot slot="leaderboard" />
 
+      {/* File Size Error */}
+      {fileSizeError && (
+        <div className="mb-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
+          {fileSizeError}
+        </div>
+      )}
+
       {/* Upload Area */}
       {!file && (
         <section className="my-8">
           <FileUpload accept=".pdf" onFiles={handleFiles} />
+          <p className="text-center text-xs text-text-light dark:text-text-dark-muted mt-2">
+            Detected: {deviceConfig.tier} &middot; Max file size: {formatMaxSize(deviceConfig.maxPdfFileSize)}
+          </p>
         </section>
       )}
 
@@ -264,7 +341,19 @@ export default function PdfToJpgTool() {
                 </button>
               ))}
             </div>
+            {deviceConfig.tier === "mobile" && (
+              <p className="text-xs text-text-light dark:text-text-dark-muted mt-2">
+                Rendering scale reduced on mobile to prevent memory issues.
+              </p>
+            )}
           </div>
+
+          {/* Device Warning */}
+          {deviceWarning && (
+            <div className="mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 text-sm">
+              {deviceWarning}
+            </div>
+          )}
 
           {isProcessing && (
             <div className="mb-4">
@@ -279,7 +368,7 @@ export default function PdfToJpgTool() {
             <p className="text-sm text-red-500 text-center mb-4">{processing.message}</p>
           )}
 
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-3">
             <button
               onClick={convertPdf}
               disabled={isProcessing}
@@ -287,6 +376,14 @@ export default function PdfToJpgTool() {
             >
               {isProcessing ? "Converting..." : "Convert to JPG"}
             </button>
+            {isProcessing && (
+              <button
+                onClick={cancelConversion}
+                className="px-6 py-3 text-lg font-medium rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+              >
+                Cancel
+              </button>
+            )}
           </div>
         </section>
       )}
