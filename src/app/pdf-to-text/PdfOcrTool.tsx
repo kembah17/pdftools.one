@@ -10,6 +10,7 @@ import {
   type PreprocessingOptions,
   defaultPreprocessingOptions,
   applyPreprocessing,
+  otsuThreshold,
 } from "@/components/tools/PdfPreprocessor";
 import { useDeviceTier, formatMaxSize } from "@/hooks/useDeviceTier";
 
@@ -252,7 +253,7 @@ export default function PdfOcrTool() {
 
         // Apply preprocessing (limited on mobile)
         const effectivePreprocessing: PreprocessingOptions = deviceConfig.tier === "mobile"
-          ? { ...preprocessing, deskew: false, binarize: false }
+          ? { ...preprocessing, deskew: false, binarize: false, sharpen: false }
           : preprocessing;
         const processedCanvas = applyPreprocessing(canvas, effectivePreprocessing);
 
@@ -597,6 +598,25 @@ export default function PdfOcrTool() {
                 </span>
               </label>
 
+              {/* Sharpen Toggle */}
+              {deviceConfig.preprocessingLevel !== "minimal" && (
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={preprocessing.sharpen}
+                    onChange={(e) =>
+                      setPreprocessing((p) => ({ ...p, sharpen: e.target.checked }))
+                    }
+                    disabled={isProcessing}
+                    className="w-4 h-4 rounded"
+                    style={{ accentColor: "var(--color-brand)" }}
+                  />
+                  <span className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+                    Sharpen Text
+                  </span>
+                </label>
+              )}
+
               {/* Contrast Slider */}
               {preprocessing.contrast && (
                 <div className="sm:col-span-2 pl-7">
@@ -611,6 +631,29 @@ export default function PdfOcrTool() {
                       value={preprocessing.contrastIntensity}
                       onChange={(e) =>
                         setPreprocessing((p) => ({ ...p, contrastIntensity: Number(e.target.value) }))
+                      }
+                      disabled={isProcessing}
+                      className="flex-1 h-2 rounded-lg cursor-pointer"
+                      style={{ accentColor: "var(--color-brand)" }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Sharpen Amount Slider */}
+              {preprocessing.sharpen && deviceConfig.preprocessingLevel !== "minimal" && (
+                <div className="sm:col-span-2 pl-7">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs w-20" style={{ color: "var(--color-text-muted)" }}>
+                      Amount: {preprocessing.sharpenAmount.toFixed(1)}
+                    </span>
+                    <input
+                      type="range"
+                      min={1}
+                      max={20}
+                      value={Math.round(preprocessing.sharpenAmount * 10)}
+                      onChange={(e) =>
+                        setPreprocessing((p) => ({ ...p, sharpenAmount: Number(e.target.value) / 10 }))
                       }
                       disabled={isProcessing}
                       className="flex-1 h-2 rounded-lg cursor-pointer"
@@ -644,13 +687,13 @@ export default function PdfOcrTool() {
                 <div className="sm:col-span-2 pl-7">
                   <div className="flex items-center gap-3">
                     <span className="text-xs w-24" style={{ color: "var(--color-text-muted)" }}>
-                      Threshold: {preprocessing.binarizeThreshold}
+                      Threshold: {preprocessing.binarizeThreshold < 0 ? "Auto" : preprocessing.binarizeThreshold}
                     </span>
                     <input
                       type="range"
                       min={0}
                       max={255}
-                      value={preprocessing.binarizeThreshold}
+                      value={preprocessing.binarizeThreshold < 0 ? 128 : preprocessing.binarizeThreshold}
                       onChange={(e) =>
                         setPreprocessing((p) => ({ ...p, binarizeThreshold: Number(e.target.value) }))
                       }
@@ -658,6 +701,19 @@ export default function PdfOcrTool() {
                       className="flex-1 h-2 rounded-lg cursor-pointer"
                       style={{ accentColor: "var(--color-brand)" }}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setPreprocessing((p) => ({ ...p, binarizeThreshold: -1 }))}
+                      disabled={isProcessing}
+                      className="text-xs px-2 py-1 rounded"
+                      style={{
+                        backgroundColor: preprocessing.binarizeThreshold < 0 ? "var(--color-brand)" : "var(--color-bg-main)",
+                        color: preprocessing.binarizeThreshold < 0 ? "#fff" : "var(--color-text-secondary)",
+                        border: "1px solid var(--color-border)",
+                      }}
+                    >
+                      Auto
+                    </button>
                   </div>
                 </div>
               )}

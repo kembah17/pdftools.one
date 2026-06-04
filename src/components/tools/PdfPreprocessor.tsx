@@ -1,22 +1,69 @@
 export interface PreprocessingOptions {
   grayscale: boolean;
   contrast: boolean;
-  contrastIntensity: number;
+  contrastIntensity: number; // 0-200
   noiseRemoval: boolean;
+  sharpen: boolean;
+  sharpenAmount: number; // 0.1-2.0
   deskew: boolean;
   binarize: boolean;
-  binarizeThreshold: number;
+  binarizeThreshold: number; // 0-255, -1 = auto (Otsu's)
 }
 
 export const defaultPreprocessingOptions: PreprocessingOptions = {
   grayscale: true,
   contrast: true,
-  contrastIntensity: 150,
+  contrastIntensity: 120,
   noiseRemoval: false,
+  sharpen: true,
+  sharpenAmount: 0.5,
   deskew: false,
   binarize: true,
-  binarizeThreshold: 128,
+  binarizeThreshold: -1, // Auto (Otsu's method)
 };
+
+/**
+ * Otsu's Adaptive Thresholding
+ * Automatically determines the optimal binarization threshold by maximizing
+ * inter-class variance between foreground and background pixels.
+ * Much better than fixed threshold for scanned PDFs with uneven lighting.
+ */
+export function otsuThreshold(imageData: ImageData): number {
+  const histogram = new Array(256).fill(0);
+  const data = imageData.data;
+  const total = data.length / 4;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const gray = Math.round(0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]);
+    histogram[gray]++;
+  }
+
+  let sum = 0;
+  for (let i = 0; i < 256; i++) sum += i * histogram[i];
+
+  let sumB = 0;
+  let wB = 0;
+  let wF = 0;
+  let maxVariance = 0;
+  let threshold = 128;
+
+  for (let t = 0; t < 256; t++) {
+    wB += histogram[t];
+    if (wB === 0) continue;
+    wF = total - wB;
+    if (wF === 0) break;
+    sumB += t * histogram[t];
+    const mB = sumB / wB;
+    const mF = (sum - sumB) / wF;
+    const variance = wB * wF * (mB - mF) * (mB - mF);
+    if (variance > maxVariance) {
+      maxVariance = variance;
+      threshold = t;
+    }
+  }
+
+  return threshold;
+}
 
 /**
  * Contrast Enhancement - Histogram Stretching
@@ -100,6 +147,42 @@ export function medianFilter(imageData: ImageData, kernelSize: number = 3): Imag
 }
 
 /**
+ * Unsharp Mask Sharpening
+ * Applies a 3x3 sharpening convolution kernel to enhance text edges.
+ * Amount controls sharpening intensity (0.1 = subtle, 2.0 = aggressive).
+ * Applied before binarization to improve text edge definition for OCR.
+ */
+export function sharpenImage(imageData: ImageData, amount: number = 0.5): ImageData {
+  const { width, height, data } = imageData;
+  const output = new Uint8ClampedArray(data);
+
+  const k = amount;
+  const kernel = [
+    0, -k, 0,
+    -k, 1 + 4 * k, -k,
+    0, -k, 0,
+  ];
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      for (let c = 0; c < 3; c++) {
+        let val = 0;
+        for (let ky = -1; ky <= 1; ky++) {
+          for (let kx = -1; kx <= 1; kx++) {
+            const idx = ((y + ky) * width + (x + kx)) * 4 + c;
+            const ki = (ky + 1) * 3 + (kx + 1);
+            val += data[idx] * kernel[ki];
+          }
+        }
+        output[(y * width + x) * 4 + c] = Math.max(0, Math.min(255, Math.round(val)));
+      }
+    }
+  }
+
+  return new ImageData(output, width, height);
+}
+
+/**
  * Deskew - Projection Profile
  * Binarize first, compute horizontal projection at angles -15 to +15 (0.5 degree steps)
  * Find angle with maximum variance in projection, return angle in degrees
@@ -118,7 +201,6 @@ export function detectSkewAngle(imageData: ImageData): number {
   let bestAngle = 0;
   let bestVariance = 0;
 
-  // Test angles from -15 to +15 in 0.5 degree steps
   for (let angleDeg = -15; angleDeg <= 15; angleDeg += 0.5) {
     const angleRad = (angleDeg * Math.PI) / 180;
     const cosA = Math.cos(angleRad);
@@ -139,7 +221,6 @@ export function detectSkewAngle(imageData: ImageData): number {
       }
     }
 
-    // Calculate variance of projection
     const mean = projection.reduce((s, v) => s + v, 0) / height;
     const variance = projection.reduce((s, v) => s + (v - mean) * (v - mean), 0) / height;
 
@@ -177,15 +258,18 @@ export function deskewImage(canvas: HTMLCanvasElement, angle: number): HTMLCanva
 
 /**
  * Binarize - Threshold
- * Convert each pixel to black (0) or white (255) based on threshold
+ * Convert each pixel to black (0) or white (255) based on threshold.
+ * When threshold is -1, automatically determines optimal threshold using Otsu's method.
  */
 export function binarizeImage(imageData: ImageData, threshold: number): ImageData {
+  const effectiveThreshold = threshold < 0 ? otsuThreshold(imageData) : threshold;
+
   const data = imageData.data;
   const len = data.length;
 
   for (let i = 0; i < len; i += 4) {
     const lum = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-    const val = lum >= threshold ? 255 : 0;
+    const val = lum >= effectiveThreshold ? 255 : 0;
     data[i] = val;
     data[i + 1] = val;
     data[i + 2] = val;
@@ -196,6 +280,7 @@ export function binarizeImage(imageData: ImageData, threshold: number): ImageDat
 
 /**
  * Apply all enabled preprocessing to a canvas
+ * Pipeline order: Grayscale -> Contrast -> Noise Removal -> Sharpen -> Deskew -> Binarize
  */
 export function applyPreprocessing(
   sourceCanvas: HTMLCanvasElement,
@@ -224,10 +309,15 @@ export function applyPreprocessing(
     imageData = medianFilter(imageData);
   }
 
+  // 4. Sharpen (after noise removal, before binarization)
+  if (options.sharpen) {
+    imageData = sharpenImage(imageData, options.sharpenAmount);
+  }
+
   // Write back before deskew (deskew operates on canvas)
   ctx.putImageData(imageData, 0, 0);
 
-  // 4. Deskew
+  // 5. Deskew
   if (options.deskew) {
     const currentData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const angle = detectSkewAngle(currentData);
@@ -242,7 +332,7 @@ export function applyPreprocessing(
     imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   }
 
-  // 5. Binarize (apply last)
+  // 6. Binarize (apply last)
   if (options.binarize) {
     imageData = binarizeImage(imageData, options.binarizeThreshold);
   }
