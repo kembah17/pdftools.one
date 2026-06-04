@@ -887,7 +887,7 @@ export default function PdfOcrTool() {
             >
               <p
                 className="text-lg font-bold"
-                style={{ color: getAverageConfidence() >= 80 ? "#16A34A" : getAverageConfidence() >= 60 ? "#D97706" : "#DC2626" }}
+                style={{ color: getAverageConfidence() >= 80 ? "#16A34A" : getAverageConfidence() >= 60 ? "#B45309" : "#DC2626" }}
               >
                 {getAverageConfidence()}%
               </p>
@@ -949,7 +949,7 @@ export default function PdfOcrTool() {
                       className="text-xs px-2 py-0.5 rounded-full"
                       style={{
                         backgroundColor: result.confidence >= 80 ? "#DCFCE7" : result.confidence >= 60 ? "#FEF3C7" : "#FEE2E2",
-                        color: result.confidence >= 80 ? "#16A34A" : result.confidence >= 60 ? "#D97706" : "#DC2626",
+                        color: result.confidence >= 80 ? "#16A34A" : result.confidence >= 60 ? "#B45309" : "#DC2626",
                       }}
                     >
                       {Math.round(result.confidence)}% confidence

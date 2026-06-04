@@ -24,13 +24,13 @@
   --color-page-bg-dark: #0B1120;
   --color-text: #0F1419;
   --color-text-light: #1E293B;
-  --color-text-dark: #F1F5F9;
+  --color-text-dark: #FFFFFF;
   --color-text-dark-muted: #94A3B8;
   --color-heading: #0F1419;
   --color-link: #DC2626;
-  --color-dark: #F1F5F9;
+  --color-dark: #FFFFFF;
   --color-dark-muted: #94A3B8;
-  --color-light: #F1F5F9;
+  --color-light: #FFFFFF;
   --color-muted: #475569;
   --color-border: #B8BCC8;
   --color-border-light: #D1D5DB;
@@ -101,6 +101,22 @@
 }
 
 .dark {
+  /* @theme variable overrides for dark mode */
+  --color-text: #F1F5F9;
+  --color-text-light: #CBD5E1;
+  --color-heading: #F8FAFC;
+  --color-muted: #94A3B8;
+  --color-card: #1A2538;
+  --color-card-hover: #243044;
+  --color-surface: #162032;
+  --color-surface-alt: #1E2D42;
+  --color-input: #1A2538;
+  --color-page-bg: #0B1120;
+  --color-light: #FFFFFF;
+  --color-dark: #FFFFFF;
+  --color-dark-muted: #94A3B8;
+  --color-link: #FCA5A5;
+
   --color-primary-text: #FFFFFF;
   --color-bg-primary: #0B1120;
   --color-bg-secondary: #162032;
