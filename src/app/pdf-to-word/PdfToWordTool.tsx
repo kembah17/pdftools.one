@@ -9,18 +9,19 @@ import { FAQ } from "@/components/seo/FAQ";
 import { FAQSchema } from "@/components/seo/FAQSchema";
 import { RelatedTools } from "@/components/seo/RelatedTools";
 import { formatFileSize, downloadBlob } from "@/lib/utils";
+import { convertPdfToWord } from "@/lib/pdfToWordEngine";
 import type { ProcessingState, FAQItem } from "@/types";
 
 const faqItems: FAQItem[] = [
   {
     question: "How does the PDF to Word converter work?",
     answer:
-      "Our converter reads your PDF file entirely in your browser using JavaScript. It extracts the text content from every page of the PDF using the pdfjs-dist library, then assembles that text into a properly formatted Word document (.docx) using the docx library. The resulting file preserves the text content organized by page with clear page headings.",
+      "Our converter reads your PDF file entirely in your browser using JavaScript. It analyzes the text positioning, font styles, and layout structure of every page using the pdfjs-dist library. Text items are grouped into lines based on their Y-coordinates, fonts are detected for bold/italic styling, and headings are identified by comparing font sizes. The result is assembled into a properly formatted Word document (.docx) using the docx library, preserving fonts, text styles, heading hierarchy, paragraph structure, and page dimensions.",
   },
   {
     question: "Will the converted Word document look exactly like my PDF?",
     answer:
-      "This tool focuses on extracting text content from your PDF. Simple text-based PDFs convert very well. However, complex layouts, multi-column designs, embedded images, tables, and special formatting may not be perfectly preserved. The tool is ideal for extracting editable text from reports, articles, ebooks, and similar text-heavy documents.",
+      "Our converter preserves a significant amount of formatting from your PDF including font families (Times New Roman, Arial, Courier, etc.), bold and italic styling, heading levels, paragraph spacing, text indentation, and page dimensions. Text-based PDFs with standard layouts convert very well. However, complex elements like multi-column layouts, embedded images, tables, vector graphics, and custom form fields are not yet supported. The tool is ideal for reports, articles, ebooks, contracts, and similar text-heavy documents where you need editable text with preserved formatting.",
   },
   {
     question: "Is my PDF uploaded to a server during conversion?",
@@ -74,82 +75,19 @@ export default function PdfToWordTool() {
     try {
       const arrayBuffer = await file.arrayBuffer();
 
-      setProcessing({ status: "processing", progress: 15, message: "Loading PDF engine..." });
-
-      const pdfjsLib = await import("pdfjs-dist");
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
-
-      setProcessing({ status: "processing", progress: 25, message: "Parsing PDF document..." });
-
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      const totalPages = pdf.numPages;
-      const pages: string[] = [];
-
-      for (let i = 1; i <= totalPages; i++) {
-        setProcessing({
-          status: "processing",
-          progress: 25 + Math.round((i / totalPages) * 40),
-          message: `Extracting text from page ${i} of ${totalPages}...`,
-        });
-
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item) => ("str" in item ? (item as { str: string }).str : ""))
-          .join(" ");
-        pages.push(pageText);
-      }
-
-      const allText = pages.join("\n\n");
-
-      if (allText.trim().length === 0) {
-        setError(
-          "No extractable text found in this PDF. It may be a scanned document containing only images. Try an OCR tool first."
-        );
-        setProcessing({ status: "error", progress: 0, message: "No text found" });
-        return;
-      }
-
-      setProcessing({ status: "processing", progress: 70, message: "Generating Word document..." });
-
-      const { Document, Packer, Paragraph, TextRun, HeadingLevel } = await import("docx");
-
-      const doc = new Document({
-        sections: [
-          {
-            properties: {},
-            children: pages.flatMap((pageText, i) => [
-              new Paragraph({
-                text: `Page ${i + 1}`,
-                heading: HeadingLevel.HEADING_2,
-                spacing: { before: i === 0 ? 0 : 400, after: 200 },
-              }),
-              ...pageText
-                .split("\n")
-                .filter((line) => line.trim().length > 0)
-                .map(
-                  (line) =>
-                    new Paragraph({
-                      children: [new TextRun({ text: line.trim() })],
-                      spacing: { after: 120 },
-                    })
-                ),
-            ]),
-          },
-        ],
-      });
-
-      setProcessing({ status: "processing", progress: 90, message: "Packaging .docx file..." });
-
-      const blob = await Packer.toBlob(doc);
+      const { blob, pageCount, textPreview } = await convertPdfToWord(
+        arrayBuffer,
+        (progress, message) => {
+          setProcessing({ status: "processing", progress, message });
+        }
+      );
 
       const baseName = file.name.replace(/\.pdf$/i, "");
-      const textPreview = allText.substring(0, 500) + (allText.length > 500 ? "..." : "");
 
       setResult({
         blob,
         fileName: `${baseName}.docx`,
-        pageCount: totalPages,
+        pageCount,
         textPreview,
       });
 
@@ -284,8 +222,9 @@ export default function PdfToWordTool() {
 
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
               <p className="text-sm text-amber-800">
-                <strong>Note:</strong> This tool extracts text content from your PDF.
-                Complex layouts, images, and formatting may not be preserved.
+                <strong>Note:</strong> This converter preserves text formatting including fonts,
+                bold/italic styles, headings, and paragraph structure. Images, tables, and
+                complex multi-column layouts are not included in the output.
               </p>
             </div>
 
