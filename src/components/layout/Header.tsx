@@ -33,7 +33,7 @@ export default function Header() {
         <Link href="/" className="flex items-center gap-2 no-underline">
           <div
             className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm"
-            style={{ backgroundColor: 'var(--color-brand)', color: '#FFFFFF' }}
+            style={{ backgroundColor: 'var(--color-primary)', color: '#FFFFFF' }}
           >
             PDF
           </div>
@@ -73,7 +73,7 @@ export default function Header() {
                 padding: "0.25rem",
                 borderRadius: "9999px",
                 border: "2px solid var(--color-border, #CBD5E1)",
-                backgroundColor: isDark ? "var(--color-primary, #10B981)" : "var(--color-border, #CBD5E1)",
+                backgroundColor: isDark ? "#B91C1C" : "var(--color-border, #CBD5E1)",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
                 width: "4rem",

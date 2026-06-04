@@ -973,7 +973,7 @@ export default function PdfOcrTool() {
             <button
               onClick={handleCopy}
               className="px-5 py-2.5 rounded-lg font-semibold text-sm"
-              style={{ backgroundColor: "var(--color-brand)", color: "#FFFFFF" }}
+              style={{ backgroundColor: "var(--color-primary)", color: "#FFFFFF" }}
             >
               {copySuccess ? "✓ Copied!" : "📋 Copy All Text"}
             </button>

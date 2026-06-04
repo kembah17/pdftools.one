@@ -17,7 +17,7 @@ export function ProgressBar({ progress, label }: ProgressBarProps) {
       <div className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--color-border-light)' }}>
         <div
           className="h-full rounded-full transition-all duration-300"
-          style={{ width: `${progress}%`, backgroundColor: 'var(--color-brand)', color: '#FFFFFF' }}
+          style={{ width: `${progress}%`, backgroundColor: 'var(--color-primary)', color: '#FFFFFF' }}
         />
       </div>
     </div>

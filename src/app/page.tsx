@@ -25,7 +25,7 @@ export default function HomePage() {
             <a
               href="#tools"
               className="inline-flex items-center justify-center px-8 py-3 rounded-xl text-base font-semibold no-underline transition-all"
-              style={{ backgroundColor: 'var(--color-brand)', color: '#FFFFFF' }}
+              style={{ backgroundColor: 'var(--color-primary)', color: '#FFFFFF' }}
             >
               Explore Tools
             </a>

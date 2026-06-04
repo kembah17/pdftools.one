@@ -42,7 +42,7 @@ export default function CookieConsent() {
           <button
             onClick={accept}
             className="px-4 py-2 rounded-lg text-sm font-medium cursor-pointer"
-            style={{ backgroundColor: 'var(--color-brand)', color: '#FFFFFF', border: 'none' }}
+            style={{ backgroundColor: 'var(--color-primary)', color: '#FFFFFF', border: 'none' }}
           >
             Accept
           </button>
