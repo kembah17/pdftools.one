@@ -100,10 +100,10 @@ export default function Footer() {
               <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', margin: '4px 0 0' }}>Find businesses across Nigeria</p>
             </div>
             <form
-              onSubmit={(e: React.FormEvent<HTMLFormElement>) => { e.preventDefault(); const q = (e.currentTarget.elements.namedItem("mh-q") as HTMLInputElement)?.value?.trim(); if (q) window.open("https://myhustle.space/search?q=" + encodeURIComponent(q), "_blank"); }}
+              action="https://myhustle.space/search" method="GET" target="_blank"
               style={{ display: 'flex', gap: '8px' }}
             >
-              <input name="mh-q" type="text" placeholder="Search businesses..." style={{ flex: 1, padding: '10px 14px', border: 'none', borderRadius: '8px', fontSize: '14px', outline: 'none', background: 'white', color: '#1f2937' }} />
+              <input name="q" type="text" placeholder="Search businesses..." style={{ flex: 1, padding: '10px 14px', border: 'none', borderRadius: '8px', fontSize: '14px', outline: 'none', background: 'white', color: '#1f2937' }} />
               <button type="submit" style={{ background: '#fbbf24', color: '#1f2937', border: 'none', borderRadius: '8px', padding: '10px 16px', fontWeight: 600, fontSize: '14px', cursor: 'pointer', whiteSpace: 'nowrap' }}>Search</button>
             </form>
             <div style={{ textAlign: 'center', marginTop: '8px' }}>
